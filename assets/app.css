@@ -1,0 +1,89 @@
+/* ============================================================
+   app.css — shared styles for the inner app pages.
+   Matches the Dashboard look so every page feels like one app.
+   ============================================================ */
+:root{
+  --bg:#0f1117;--surface:#171a23;--surface-2:#1f2430;--line:#2a3040;
+  --text:#e8eaf0;--muted:#9aa3b5;--primary:#6c5ce7;--primary-soft:#8b7cf0;
+  --accent:#ff7a59;--good:#2ecc71;--radius:16px;--shadow:0 10px 30px rgba(0,0,0,.35);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* Sidebar */
+.sidebar{background:var(--surface);border-right:1px solid var(--line);padding:24px 18px;
+  display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 8px 22px}
+.brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:grid;place-items:center;font-weight:800;font-size:18px;color:#fff}
+.brand h1{font-size:16px;line-height:1.2}
+.brand span{font-size:11px;color:var(--muted);letter-spacing:.5px}
+.nav{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:14px 12px 6px}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;color:var(--muted);
+  font-size:14px;font-weight:500;transition:.18s}
+.nav a .ic{width:20px;text-align:center;font-size:16px}
+.nav a:hover{background:var(--surface-2);color:var(--text)}
+.nav a.active{background:linear-gradient(135deg,rgba(108,92,231,.22),rgba(255,122,89,.12));color:#fff}
+.logout{margin-top:auto}
+.logout a{display:flex;align-items:center;gap:12px;justify-content:center;padding:12px;border-radius:10px;
+  font-weight:600;font-size:14px;background:rgba(255,99,99,.12);color:#ff8585;border:1px solid rgba(255,99,99,.25);transition:.18s}
+.logout a:hover{background:rgba(255,99,99,.22)}
+
+/* Main */
+.main{padding:28px 34px;overflow-x:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:26px}
+.topbar h2{font-size:22px}
+.topbar p{font-size:13px;color:var(--muted);margin-top:2px}
+.profile{display:flex;align-items:center;gap:12px}
+.profile .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-soft));
+  display:grid;place-items:center;font-weight:700;color:#fff}
+.profile .who{text-align:right}
+.profile .who b{font-size:14px;display:block}
+.profile .who small{font-size:12px;color:var(--muted)}
+
+.section-title{font-size:16px;margin:6px 0 16px;display:flex;align-items:center;gap:8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:24px}
+.panel h3{font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.lead{color:var(--muted);font-size:14px;margin:-8px 0 18px;line-height:1.5}
+
+/* Notices */
+.notice,.error{border-radius:12px;padding:12px 16px;font-size:14px;margin-bottom:20px}
+.notice{background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);color:#8be9b0}
+.error{background:rgba(255,99,99,.12);border:1px solid rgba(255,99,99,.3);color:#ff8585}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1 / -1}
+.field label{font-size:13px;color:var(--muted)}
+.field input,.field textarea,.field select{background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  padding:11px 13px;border-radius:10px;font-size:14px;font-family:inherit;width:100%}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--primary)}
+.field textarea{min-height:90px;resize:vertical}
+.hint{font-size:11px;color:var(--muted)}
+.form-actions{margin-top:18px;display:flex;justify-content:flex-end;gap:10px}
+
+/* Buttons */
+.btn{cursor:pointer;border:none;font-weight:600;font-size:14px;padding:12px 18px;border-radius:10px;transition:.18s;display:inline-grid;place-items:center}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.btn-ghost{background:var(--surface-2);border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--primary)}
+
+/* Responsive shell */
+.menu-btn{display:none}
+@media(max-width:980px){.form-grid{grid-template-columns:1fr}}
+@media(max-width:760px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-280px;z-index:50;transition:.25s;width:260px}
+  .sidebar.open{left:0}
+  .menu-btn{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;
+    background:var(--surface);border:1px solid var(--line);color:var(--text);font-size:20px;cursor:pointer}
+  .main{padding:20px}
+  .profile .who{display:none}
+}
