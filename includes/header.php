@@ -1,29 +1,64 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Builder | Account</title>
+    <title>Dynamic Portfolio</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
+<body>
 
-<body style="background-color:#f4f6fb;">
+<nav class="navbar navbar-expand-lg py-3">
+    <div class="container">
 
-    <nav class="navbar navbar-dark" style="background-color:#3730a3;">
-        <div class="container">
-            <span class="navbar-brand fw-bold">Portfolio Builder</span>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="logout.php" class="btn btn-outline-light btn-sm">Logout</a>
-            <?php else: ?>
-                <a href="login.php" class="btn btn-outline-light btn-sm">Login</a>
-            <?php endif; ?>
+        <a class="navbar-brand fw-bold fs-5" href="index.php">
+            <i class="bi bi-briefcase-fill me-1"></i> Portfolio<span>Builder</span>
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php">Home</a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link" href="demo.php">Demo</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="contact.php">Contact</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="login.php">Login</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="btn btn-brand px-4" href="register.php">Register</a>
+                </li>
+
+            </ul>
         </div>
-    </nav>
 
-    <div class="container py-5">
+    </div>
+</nav>
