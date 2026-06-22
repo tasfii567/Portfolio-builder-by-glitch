@@ -20,9 +20,12 @@ if ($slug !== '') {
 if (!$portfolio) {
     http_response_code(404);
     echo '<!doctype html><meta charset="utf-8"><title>Not found</title>'
-       . '<body style="background:#0f1117;color:#e8eaf0;font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0">'
-       . '<div style="text-align:center"><h1 style="font-size:60px;margin:0">404</h1>'
-       . '<p style="color:#9aa3b5">This portfolio doesn\'t exist or the link is wrong.</p></div>';
+       . '<body style="background:#f4f1ea;color:#1d211a;font-family:\'Plus Jakarta Sans\',system-ui,Arial,sans-serif;display:grid;place-items:center;height:100vh;margin:0">'
+       . '<div style="text-align:center">'
+       . '<h1 style="font-size:64px;margin:0;color:#3a4a23">404</h1>'
+       . '<p style="color:#797f6f;font-size:15px">This portfolio doesn\'t exist or the link is wrong.</p>'
+       . '<a href="index.php" style="display:inline-block;margin-top:16px;background:#3a4a23;color:#fff;text-decoration:none;font-weight:700;padding:11px 22px;border-radius:12px">Go to PortfolioBuilder</a>'
+       . '</div></body>';
     exit;
 }
 $userId = (int) $portfolio['user_id'];
@@ -36,21 +39,24 @@ $visitCount = (int) $vc->fetchColumn();
 
 // --- Owner info (users + profiles) -------------------------------------
 $uu = $pdo->prepare("SELECT name, email, role FROM users WHERE id = ?");
-$uu->execute([$userId]); $uRow = $uu->fetch() ?: ['name'=>$portfolio['owner_name'],'email'=>'','role'=>$portfolio['owner_role']];
+$uu->execute([$userId]);
+$uRow = $uu->fetch() ?: ['name' => $portfolio['owner_name'], 'email' => '', 'role' => $portfolio['owner_role']];
 $prof = get_profile($pdo, $userId);
 
 $owner = [
-    'name'     => $portfolio['owner_name'] ?: ($uRow['name'] ?: 'Portfolio'),
-    'role'     => $portfolio['owner_role'] ?: ($uRow['role'] ?: ''),
-    'email'    => $uRow['email'] ?? '',
-    'image'    => $prof['image'] ?? '',
-    'github'   => $prof['github'] ?? '',
-    'website'  => $prof['website'] ?? '',
-    'location' => $prof['location'] ?? '',
-    'summary'  => $prof['summary'] ?? '',
-    'skills'   => skills_to_array($prof['skills'] ?? ''),
+    'name'       => $portfolio['owner_name'] ?: ($uRow['name'] ?: 'Portfolio'),
+    'role'       => $portfolio['owner_role'] ?: ($uRow['role'] ?: ''),
+    'email'      => $uRow['email'] ?? '',
+    'image'      => $prof['image'] ?? '',
+    'github'     => $prof['github'] ?? '',
+    'website'    => $prof['website'] ?? '',
+    'location'   => $prof['location'] ?? '',
+    'summary'    => $prof['summary'] ?? '',
+    'experience' => $prof['experience'] ?? '',
+    'education'  => $prof['education'] ?? '',
+    'skills'     => skills_to_array($prof['skills'] ?? ''),
 ];
-$owner['initials'] = strtoupper(substr($owner['name'],0,1) . (strpos($owner['name'],' ')!==false ? substr($owner['name'],strpos($owner['name'],' ')+1,1) : ''));
+$owner['initials'] = strtoupper(substr($owner['name'], 0, 1) . (strpos($owner['name'], ' ') !== false ? substr($owner['name'], strpos($owner['name'], ' ') + 1, 1) : ''));
 
 // --- Projects + images -------------------------------------------------
 $ps = $pdo->prepare("SELECT * FROM projects WHERE user_id = ? ORDER BY created_at DESC");
