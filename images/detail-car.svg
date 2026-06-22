@@ -1,0 +1,31 @@
+<svg viewBox="0 0 740 420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#11324a"/>
+      <stop offset="55%" stop-color="#0d4a52"/>
+      <stop offset="100%" stop-color="#1b3a4f"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7a3a33"/>
+      <stop offset="100%" stop-color="#43201f"/>
+    </linearGradient>
+  </defs>
+  <rect width="740" height="420" fill="url(#sky)"/>
+  <path d="M0 230c100-40 200-50 300-30s260 50 440 10v210H0z" fill="#0f3f49" opacity="0.6"/>
+  <path d="M0 300h740v120H0z" fill="url(#ground)"/>
+  <ellipse cx="600" cy="120" rx="70" ry="70" fill="#1c5560" opacity="0.5"/>
+
+  <!-- car body -->
+  <g>
+    <path d="M150 300c10-22 40-44 80-50l40-6c30-32 70-46 110-46 36 0 60 14 76 38l60 4c30 2 54 18 60 38l10 22z" fill="#c23b3f"/>
+    <path d="M150 300h420v18c0 6-6 10-12 10H162c-7 0-12-4-12-10z" fill="#9c2f33"/>
+    <path d="M260 244c18-22 46-34 76-34 26 0 46 10 60 28l-6 4h-130z" fill="#1c2230"/>
+    <rect x="266" y="232" width="118" height="34" rx="6" fill="#5b7fa3" opacity="0.85"/>
+    <circle cx="240" cy="320" r="34" fill="#171a22"/>
+    <circle cx="240" cy="320" r="14" fill="#7c828e"/>
+    <circle cx="500" cy="320" r="34" fill="#171a22"/>
+    <circle cx="500" cy="320" r="14" fill="#7c828e"/>
+    <rect x="160" y="282" width="50" height="10" rx="5" fill="#e6e6e6"/>
+    <rect x="555" y="282" width="40" height="10" rx="5" fill="#e6e6e6"/>
+  </g>
+</svg>

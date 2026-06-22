@@ -1,0 +1,119 @@
+<svg viewBox="0 0 740 460" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+  <rect width="740" height="460" fill="#eef0f5"/>
+
+  <!-- top filter bar -->
+  <rect x="0" y="0" width="740" height="118" fill="#ffffff"/>
+
+  <!-- column 1: team diversity -->
+  <text x="24" y="24" font-size="9" fill="#9aa0ad" letter-spacing="0.5">TEAM DIVERSITY</text>
+  <rect x="186" y="14" width="26" height="14" rx="7" fill="#dfe2ea"/>
+  <circle cx="193" cy="21" r="6" fill="#1fae8e"/>
+  <g font-size="10" fill="#5a5e6d">
+    <rect x="24" y="34" width="150" height="14" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="32" y="44">Very Different</text>
+    <rect x="24" y="50" width="150" height="14" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="32" y="60">Different</text>
+    <rect x="24" y="66" width="150" height="14" rx="3" fill="#f3f4f8" stroke="#dadde6"/>
+    <text x="32" y="76" font-weight="700" fill="#2b2e3d">Balanced</text>
+    <rect x="24" y="82" width="150" height="14" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="32" y="92">Very Similar</text>
+    <rect x="24" y="98" width="150" height="14" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="32" y="108">Similar</text>
+  </g>
+
+  <!-- column 2: fit to team member -->
+  <text x="246" y="24" font-size="9" fill="#9aa0ad" letter-spacing="0.5">FIT TO TEAM MEMBER</text>
+  <rect x="430" y="14" width="26" height="14" rx="7" fill="#dfe2ea"/>
+  <circle cx="437" cy="21" r="6" fill="#1fae8e"/>
+  <circle cx="256" cy="44" r="9" fill="#f3c7a4"/>
+  <rect x="246" y="38" width="100" height="20" rx="10" fill="#f3f4f8" stroke="#dadde6"/>
+  <text x="272" y="51" font-size="10" fill="#2b2e3d">Fit to Lead</text>
+  <rect x="354" y="38" width="68" height="20" rx="10" fill="#ffffff" stroke="#e7e9ef"/>
+  <text x="368" y="51" font-size="10" fill="#5a5e6d">Other</text>
+
+  <text x="246" y="78" font-size="9" fill="#9aa0ad" letter-spacing="0.5">PROFILE</text>
+  <rect x="246" y="88" width="100" height="18" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+  <text x="256" y="100" font-size="9.5" fill="#5a5e6d">Perfect Profile</text>
+  <rect x="354" y="88" width="80" height="18" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+  <text x="364" y="100" font-size="9.5" fill="#5a5e6d">Readymade</text>
+
+  <!-- column 3: fix team's problem area -->
+  <text x="466" y="24" font-size="9" fill="#9aa0ad" letter-spacing="0.5">FIX TEAM'S PROBLEM AREA</text>
+  <rect x="688" y="14" width="26" height="14" rx="7" fill="#dfe2ea"/>
+  <circle cx="695" cy="21" r="6" fill="#1fae8e"/>
+  <g font-size="9.5" fill="#5a5e6d">
+    <rect x="466" y="36" width="64" height="18" rx="9" fill="#f3f4f8" stroke="#dadde6"/>
+    <text x="480" y="48" font-weight="700" fill="#2b2e3d">Overall</text>
+    <rect x="536" y="36" width="64" height="18" rx="9" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="552" y="48">Efficiency</text>
+    <rect x="606" y="36" width="60" height="18" rx="9" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="618" y="48">Respect</text>
+    <rect x="466" y="58" width="74" height="18" rx="9" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="476" y="70">Communication</text>
+    <rect x="546" y="58" width="64" height="18" rx="9" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="558" y="70">Teamwork</text>
+    <rect x="616" y="58" width="60" height="18" rx="9" fill="#ffffff" stroke="#e7e9ef"/>
+    <text x="628" y="70">Adaptability</text>
+  </g>
+  <text x="466" y="92" font-size="9" fill="#9aa0ad" letter-spacing="0.5">TRAITS</text>
+  <text x="640" y="92" font-size="9" fill="#9aa0ad" letter-spacing="0.5">BUBBLE VIEW</text>
+  <rect x="688" y="84" width="26" height="14" rx="7" fill="#dfe2ea"/>
+  <circle cx="695" cy="91" r="6" fill="#1fae8e"/>
+  <rect x="466" y="98" width="120" height="18" rx="3" fill="#ffffff" stroke="#e7e9ef"/>
+  <text x="476" y="110" font-size="9.5" fill="#5a5e6d">Select one</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="118" width="150" height="342" fill="#2a2c45"/>
+  <text x="20" y="142" font-size="9" fill="#7d80a3" letter-spacing="0.5">UX DESIGNER SENIOR</text>
+  <text x="34" y="172" font-size="10.5" fill="#cfd1e6">TEAMS</text>
+  <rect x="20" y="162" width="6" height="6" fill="#5de0c9"/>
+  <text x="34" y="200" font-size="10.5" fill="#9295b8">CONTACTS</text>
+  <rect x="20" y="190" width="6" height="6" fill="#4a4c70"/>
+
+  <!-- candidate cards -->
+  <g>
+    <rect x="170" y="138" width="120" height="118" rx="8" fill="#a7adc4"/>
+    <circle cx="230" cy="172" r="20" fill="#f3c7a4"/>
+    <text x="230" y="178" font-size="9" text-anchor="middle" fill="#5a4030">JP</text>
+    <text x="230" y="206" font-size="11" font-weight="700" text-anchor="middle" fill="#ffffff">Jesse Padilla</text>
+    <text x="230" y="238" font-size="22" font-weight="700" text-anchor="middle" fill="#1c2230">98</text>
+  </g>
+  <g>
+    <rect x="300" y="138" width="120" height="118" rx="8" fill="#a7adc4"/>
+    <circle cx="360" cy="172" r="20" fill="#e0488a"/>
+    <text x="360" y="178" font-size="9" text-anchor="middle" fill="#ffffff">EP</text>
+    <text x="360" y="206" font-size="11" font-weight="700" text-anchor="middle" fill="#ffffff">Ellen Pena</text>
+    <text x="360" y="238" font-size="22" font-weight="700" text-anchor="middle" fill="#1c2230">97</text>
+  </g>
+  <g>
+    <rect x="430" y="138" width="120" height="118" rx="8" fill="#a7adc4"/>
+    <circle cx="490" cy="172" r="20" fill="#5de0c9"/>
+    <text x="490" y="178" font-size="9" text-anchor="middle" fill="#1c2230">SM</text>
+    <text x="490" y="206" font-size="11" font-weight="700" text-anchor="middle" fill="#ffffff">Sallie Malone</text>
+    <text x="490" y="238" font-size="22" font-weight="700" text-anchor="middle" fill="#1c2230">95</text>
+  </g>
+  <g>
+    <rect x="560" y="138" width="160" height="118" rx="8" fill="#a7adc4"/>
+    <circle cx="640" cy="172" r="20" fill="#4a4c70"/>
+    <text x="640" y="178" font-size="9" text-anchor="middle" fill="#ffffff">VC</text>
+    <text x="640" y="206" font-size="11" font-weight="700" text-anchor="middle" fill="#ffffff">Vincent Cole</text>
+    <text x="640" y="238" font-size="22" font-weight="700" text-anchor="middle" fill="#1c2230">89</text>
+  </g>
+
+  <!-- all candidates list header -->
+  <text x="170" y="284" font-size="9.5" fill="#5a5e6d">ALL CANDIDATES</text>
+  <text x="700" y="284" font-size="9.5" fill="#9aa0ad" text-anchor="end">1 - 69</text>
+
+  <!-- list rows -->
+  <rect x="170" y="294" width="550" height="34" rx="4" fill="#dfe2ec"/>
+  <circle cx="190" cy="311" r="9" fill="#c9a98b"/>
+  <text x="208" y="308" font-size="10" fill="#2b2e3d">Shane Spencer</text>
+  <text x="380" y="308" font-size="9.5" fill="#7d8092">Calming Influence</text>
+  <text x="700" y="308" font-size="10" fill="#2b2e3d" text-anchor="end">87</text>
+
+  <rect x="170" y="332" width="550" height="34" rx="4" fill="#eceef4"/>
+  <circle cx="190" cy="349" r="9" fill="#8a8fb0"/>
+  <text x="208" y="346" font-size="10" fill="#2b2e3d">Mina Clover</text>
+  <text x="380" y="346" font-size="9.5" fill="#7d8092">Nurturer</text>
+  <text x="700" y="346" font-size="10" fill="#2b2e3d" text-anchor="end">86</text>
+</svg>
