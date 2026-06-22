@@ -10,19 +10,19 @@
 
     <?php
     $templates = [
-        ['img' => '', 'title' => '',    'desc' => 'Modern Creative Agency Design',      'tag' => 'Popular',   'file' => 'temp1.html'],
-        ['img' => '', 'title' => '',   'desc' => 'Clean Tech & Code Showcase',          'tag' => 'Dev',       'file' => 'temp1.html'],
-        ['img' => '', 'title' => '', 'desc' => 'Elegant Visual Portfolio',            'tag' => 'Visual',    'file' => 'temp1.html'],
-        ['img' => '', 'title' => '',    'desc' => 'Bold UI/UX Portfolio Design',         'tag' => 'Design',    'file' => 'temp1.html'],
-        ['img' => '', 'title' => '',  'desc' => 'Professional Services Showcase',      'tag' => 'Freelance', 'file' => 'temp1.html'],
-        ['img' => '02', 'title' => '',     'desc' => 'Academic & Project Highlight',        'tag' => 'Student',   'file' => 'temp1.html'],
-        ['img' => '01', 'title' => '',      'desc' => 'Gallery Style Creative Layout',       'tag' => 'Art',       'file' => 'temp1.html'],
-        ['img' => '02', 'title' => '',    'desc' => 'Corporate Professional Design',       'tag' => 'Business',  'file' => 'temp1.html'],
+        ['img' => '01', 'title' => 'Creative Portfolio',    'desc' => 'Modern Creative Agency Design',   'tag' => 'Popular',   'file' => 'temp1.html'],
+        ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',      'tag' => 'Dev',       'file' => 'temp1.html'],
+        ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',        'tag' => 'Visual',    'file' => 'temp1.html'],
+        ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',     'tag' => 'Design',    'file' => 'temp1.html'],
+        ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',  'tag' => 'Freelance', 'file' => 'temp1.html'],
+        ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',    'tag' => 'Student',   'file' => 'temp1.html'],
+        ['img' => '01', 'title' => 'Artist Portfolio',      'desc' => 'Gallery Style Creative Layout',   'tag' => 'Art',       'file' => 'temp1.html'],
+        ['img' => '02', 'title' => 'Business Portfolio',    'desc' => 'Corporate Professional Design',   'tag' => 'Business',  'file' => 'temp1.html'],
     ];
     ?>
 
     <div class="demo-grid">
-        <?php foreach($templates as $i => $t): ?>
+        <?php foreach($templates as $t): ?>
         <div class="demo-card">
 
             <div class="demo-img-wrap">
@@ -39,11 +39,11 @@
                 </div>
                 <!-- Thumbnail image overlay -->
                 <div class="demo-thumb-overlay">
-                    <img src="assets/images/template01.png $t['img'] ?>.png" alt="<?= htmlspecialchars($t['title']) ?>">
+                    
                 </div>
                 <div class="demo-overlay">
                     <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
-                        <i class="bi bi-eye me-2"></i>See Template
+                        <i class="bi bi-eye"></i> See Template
                     </button>
                 </div>
                 <span class="demo-tag"><?= htmlspecialchars($t['tag']) ?></span>
@@ -92,14 +92,13 @@
 
         <div class="tpl-modal-footer">
             <span class="tpl-footer-note">This is a live preview of the template</span>
-            <a id="modalUseBtn" href="login.php" class="tpl-use-btn">Use this template →</a>
+            <a id="modalUseBtn" href="login.php" class="tpl-use-btn-modal">Use this template →</a>
         </div>
 
     </div>
 </div>
 
 <style>
-/* ─── existing styles ─── */
 .demo-wrap {
     background: var(--bg);
     padding: 80px 5% 100px;
@@ -143,6 +142,8 @@
     max-width: 1200px;
     margin: 0 auto;
 }
+
+/* ── Card ── */
 .demo-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -152,11 +153,14 @@
 }
 .demo-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 40px rgba(43,41,38,.08);
+    box-shadow: 0 20px 40px rgba(43,41,38,.10);
 }
+
+/* ── Image / iframe area ── */
 .demo-img-wrap {
     position: relative;
     overflow: hidden;
+    height: 210px;
 }
 .demo-iframe-wrap {
     width: 100%;
@@ -184,7 +188,7 @@
     transform: scale(0.233) translateY(-12px);
 }
 
-/* Thumbnail image overlay */
+/* ── Thumbnail overlay — সরে যায় hover এ ── */
 .demo-thumb-overlay {
     position: absolute;
     inset: 0;
@@ -201,93 +205,121 @@
     opacity: 0;
     transform: scale(1.04);
 }
+
+/* ── See Template overlay button ── */
 .demo-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(43,41,38,.5);
+    background: rgba(30,26,22,.45);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
+    z-index: 3;
     transition: opacity .3s;
 }
 .demo-card:hover .demo-overlay { opacity: 1; }
 .demo-preview-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     background: #fff;
-    color: var(--text-dark);
+    color: var(--text-dark, #1a1a1a);
     border: none;
     cursor: pointer;
-    padding: 11px 22px;
+    padding: 10px 20px;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
-    transition: background .2s;
+    transition: background .2s, transform .15s;
 }
-.demo-preview-btn:hover { background: var(--bg); }
+.demo-preview-btn:hover {
+    background: #f5f4f2;
+    transform: scale(1.04);
+}
+
+/* ── Tag badge ── */
 .demo-tag {
     position: absolute;
     top: 12px;
     left: 12px;
-    background: var(--brand-dark);
+    z-index: 4;
+    background: var(--brand-dark, #1e3a1e);
     color: #fff;
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .06em;
+    font-weight: 700;
+    letter-spacing: .08em;
     text-transform: uppercase;
     padding: 4px 10px;
     border-radius: 6px;
 }
-.demo-card-body { padding: 18px 20px 20px; }
+
+/* ── Card body ── */
+.demo-card-body {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 .demo-card-title {
     font-size: 15px;
     font-weight: 700;
     color: var(--text-dark);
     letter-spacing: -.02em;
-    margin-bottom: 4px;
+    margin: 0;
 }
 .demo-card-desc {
     font-size: 13px;
     color: var(--text-mid);
     line-height: 1.55;
-    margin-bottom: 14px;
+    margin: 0 0 10px;
 }
+
+/* ── "Use this template" — proper button ── */
 .demo-use-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    background: none;
+    border: 1.5px solid var(--accent, #3a6e3a);
+    color: var(--accent, #3a6e3a);
     font-size: 13px;
     font-weight: 600;
-    color: var(--accent);
-    background: none;
-    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
     cursor: pointer;
-    padding: 0;
     letter-spacing: -.01em;
-    transition: color .2s;
+    transition: background .2s, color .2s, transform .15s;
+    text-decoration: none;
 }
-.demo-use-btn:hover { color: var(--brand-dark); }
+.demo-use-btn:hover {
+    background: var(--accent, #3a6e3a);
+    color: #fff;
+    transform: translateY(-1px);
+}
 
+/* ── Responsive ── */
 @media (max-width: 1100px) { .demo-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 780px)  { .demo-grid { grid-template-columns: repeat(2, 1fr); } .demo-h1 { font-size: 34px; } }
 @media (max-width: 500px)  { .demo-grid { grid-template-columns: 1fr; } .demo-wrap { padding: 56px 5% 72px; } }
 
-/* ─── modal styles ─── */
+/* ═══ Modal ═══ */
 .tpl-modal-bg {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, .6);
+    background: rgba(0,0,0,.6);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     align-items: center;
     justify-content: center;
     padding: 20px;
-    animation: fadeIn .2s ease;
 }
-.tpl-modal-bg.active { display: flex; }
+.tpl-modal-bg.active { display: flex; animation: tplFadeIn .2s ease; }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
+@keyframes tplFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .tpl-modal {
     background: #fff;
@@ -299,14 +331,12 @@
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 32px 80px rgba(0,0,0,.25);
-    animation: slideUp .25s cubic-bezier(.4,0,.2,1);
+    animation: tplSlideUp .25s cubic-bezier(.4,0,.2,1);
 }
-
-@keyframes slideUp {
+@keyframes tplSlideUp {
     from { transform: translateY(20px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
-
 .tpl-modal-header {
     display: flex;
     align-items: center;
@@ -316,7 +346,6 @@
     gap: 12px;
     flex-shrink: 0;
 }
-
 .tpl-modal-meta {
     display: flex;
     align-items: center;
@@ -324,14 +353,12 @@
     min-width: 0;
     flex: 1;
 }
-
 .tpl-modal-title {
     font-size: 14px;
     font-weight: 700;
     color: var(--text-dark, #1a1a1a);
     white-space: nowrap;
 }
-
 .tpl-modal-url {
     font-size: 12px;
     font-family: monospace;
@@ -340,19 +367,17 @@
     padding: 4px 10px;
     border-radius: 6px;
     border: 1px solid #e8e6e3;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 .tpl-modal-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
 }
-
 .tpl-action-btn {
     width: 32px;
     height: 32px;
@@ -368,14 +393,12 @@
     text-decoration: none;
     transition: background .15s, color .15s;
 }
-.tpl-action-btn:hover { background: #f5f4f2; color: var(--text-dark, #1a1a1a); }
-
+.tpl-action-btn:hover { background: #f5f4f2; color: #1a1a1a; }
 .tpl-modal-body {
     flex: 1;
     position: relative;
     overflow: hidden;
 }
-
 .tpl-loading {
     position: absolute;
     inset: 0;
@@ -389,25 +412,21 @@
     color: #888;
     z-index: 2;
 }
-
 .tpl-spinner {
     width: 28px;
     height: 28px;
     border: 2.5px solid #e8e6e3;
-    border-top-color: var(--accent, #FF6B2B);
+    border-top-color: var(--accent, #3a6e3a);
     border-radius: 50%;
-    animation: spin .7s linear infinite;
+    animation: tplSpin .7s linear infinite;
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
+@keyframes tplSpin { to { transform: rotate(360deg); } }
 #templateFrame {
     width: 100%;
     height: 100%;
     border: none;
     display: block;
 }
-
 .tpl-modal-footer {
     display: flex;
     align-items: center;
@@ -416,16 +435,15 @@
     border-top: 1px solid #f0eeec;
     flex-shrink: 0;
 }
-
 .tpl-footer-note {
     font-size: 12px;
     color: #aaa;
 }
-
-.tpl-use-btn {
+.tpl-use-btn-modal {
     display: inline-flex;
     align-items: center;
-    background: var(--accent, #FF6B2B);
+    gap: 6px;
+    background: var(--accent, #3a6e3a);
     color: #fff;
     text-decoration: none;
     font-size: 13px;
@@ -434,7 +452,7 @@
     border-radius: 10px;
     transition: opacity .2s;
 }
-.tpl-use-btn:hover { opacity: .88; color: #fff; }
+.tpl-use-btn-modal:hover { opacity: .88; color: #fff; }
 
 @media (max-width: 600px) {
     .tpl-modal { height: 95vh; border-radius: 12px; }
@@ -477,12 +495,10 @@ function hideLoading() {
 }
 
 function handleModalBgClick(e) {
-    if (e.target === document.getElementById('templateModal')) {
-        closePreview();
-    }
+    if (e.target === document.getElementById('templateModal')) closePreview();
 }
 
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePreview();
 });
 </script>
