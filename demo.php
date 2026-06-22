@@ -10,35 +10,51 @@
 
     <?php
     $templates = [
-        ['img' => '01', 'title' => 'Creative Portfolio',    'desc' => 'Modern Creative Agency Design',      'tag' => 'Popular'],
-        ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',          'tag' => 'Dev'],
-        ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',            'tag' => 'Visual'],
-        ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',         'tag' => 'Design'],
-        ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',      'tag' => 'Freelance'],
-        ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',        'tag' => 'Student'],
-        ['img' => '01', 'title' => 'Artist Portfolio',      'desc' => 'Gallery Style Creative Layout',       'tag' => 'Art'],
-        ['img' => '02', 'title' => 'Business Portfolio',    'desc' => 'Corporate Professional Design',       'tag' => 'Business'],
+        ['img' => '', 'title' => '',    'desc' => 'Modern Creative Agency Design',      'tag' => 'Popular',   'file' => 'temp1.html'],
+        ['img' => '', 'title' => '',   'desc' => 'Clean Tech & Code Showcase',          'tag' => 'Dev',       'file' => 'temp1.html'],
+        ['img' => '', 'title' => '', 'desc' => 'Elegant Visual Portfolio',            'tag' => 'Visual',    'file' => 'temp1.html'],
+        ['img' => '', 'title' => '',    'desc' => 'Bold UI/UX Portfolio Design',         'tag' => 'Design',    'file' => 'temp1.html'],
+        ['img' => '', 'title' => '',  'desc' => 'Professional Services Showcase',      'tag' => 'Freelance', 'file' => 'temp1.html'],
+        ['img' => '02', 'title' => '',     'desc' => 'Academic & Project Highlight',        'tag' => 'Student',   'file' => 'temp1.html'],
+        ['img' => '01', 'title' => '',      'desc' => 'Gallery Style Creative Layout',       'tag' => 'Art',       'file' => 'temp1.html'],
+        ['img' => '02', 'title' => '',    'desc' => 'Corporate Professional Design',       'tag' => 'Business',  'file' => 'temp1.html'],
     ];
     ?>
 
     <div class="demo-grid">
-        <?php foreach($templates as $t): ?>
+        <?php foreach($templates as $i => $t): ?>
         <div class="demo-card">
 
             <div class="demo-img-wrap">
-                <img src="assets/images/portfolio 0<?= $t['img'] ?>.png" alt="<?= $t['title'] ?>">
-                <div class="demo-overlay">
-                    <a href="login.php" class="demo-preview-btn">
-                        <i class="bi bi-eye me-2"></i>See Template
-                    </a>
+                <div class="demo-iframe-wrap">
+                    <iframe
+                        src="<?= htmlspecialchars($t['file']) ?>"
+                        class="demo-iframe"
+                        scrolling="no"
+                        tabindex="-1"
+                        loading="lazy"
+                        title="<?= htmlspecialchars($t['title']) ?> preview">
+                    </iframe>
+                    <div class="demo-iframe-block"></div>
                 </div>
-                <span class="demo-tag"><?= $t['tag'] ?></span>
+                <!-- Thumbnail image overlay -->
+                <div class="demo-thumb-overlay">
+                    <img src="assets/images/template01.png $t['img'] ?>.png" alt="<?= htmlspecialchars($t['title']) ?>">
+                </div>
+                <div class="demo-overlay">
+                    <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
+                        <i class="bi bi-eye me-2"></i>See Template
+                    </button>
+                </div>
+                <span class="demo-tag"><?= htmlspecialchars($t['tag']) ?></span>
             </div>
 
             <div class="demo-card-body">
-                <h3 class="demo-card-title"><?= $t['title'] ?></h3>
-                <p class="demo-card-desc"><?= $t['desc'] ?></p>
-                <a href="login.php" class="demo-use-btn">Use this template →</a>
+                <h3 class="demo-card-title"><?= htmlspecialchars($t['title']) ?></h3>
+                <p class="demo-card-desc"><?= htmlspecialchars($t['desc']) ?></p>
+                <button class="demo-use-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
+                    Use this template →
+                </button>
             </div>
 
         </div>
@@ -47,17 +63,51 @@
 
 </section>
 
+<!-- ═══ TEMPLATE PREVIEW MODAL ═══ -->
+<div id="templateModal" class="tpl-modal-bg" onclick="handleModalBgClick(event)">
+    <div class="tpl-modal">
+
+        <div class="tpl-modal-header">
+            <div class="tpl-modal-meta">
+                <span class="tpl-modal-title" id="modalTitle">Preview</span>
+                <span class="tpl-modal-url" id="modalUrl">temp1.html</span>
+            </div>
+            <div class="tpl-modal-actions">
+                <a id="modalOpenLink" href="#" target="_blank" class="tpl-action-btn" title="Open in new tab">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button class="tpl-action-btn" onclick="closePreview()" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tpl-modal-body">
+            <div class="tpl-loading" id="modalLoading">
+                <div class="tpl-spinner"></div>
+                <span>Loading preview…</span>
+            </div>
+            <iframe id="templateFrame" title="Template preview" onload="hideLoading()"></iframe>
+        </div>
+
+        <div class="tpl-modal-footer">
+            <span class="tpl-footer-note">This is a live preview of the template</span>
+            <a id="modalUseBtn" href="login.php" class="tpl-use-btn">Use this template →</a>
+        </div>
+
+    </div>
+</div>
+
 <style>
+/* ─── existing styles ─── */
 .demo-wrap {
     background: var(--bg);
     padding: 80px 5% 100px;
 }
-
 .demo-head {
     text-align: center;
     margin-bottom: 56px;
 }
-
 .demo-eyebrow {
     display: inline-block;
     font-size: 11px;
@@ -67,7 +117,6 @@
     color: var(--accent);
     margin-bottom: 14px;
 }
-
 .demo-h1 {
     font-size: 48px;
     font-weight: 800;
@@ -76,12 +125,10 @@
     line-height: 1.08;
     margin-bottom: 14px;
 }
-
 .demo-h1 em {
     font-style: normal;
     color: var(--accent);
 }
-
 .demo-sub {
     font-size: 16px;
     color: var(--text-mid);
@@ -89,7 +136,6 @@
     margin: 0 auto;
     line-height: 1.65;
 }
-
 .demo-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -97,7 +143,6 @@
     max-width: 1200px;
     margin: 0 auto;
 }
-
 .demo-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -105,29 +150,57 @@
     overflow: hidden;
     transition: transform .25s, box-shadow .25s;
 }
-
 .demo-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 20px 40px rgba(43,41,38,.08);
 }
-
 .demo-img-wrap {
     position: relative;
     overflow: hidden;
 }
-
-.demo-img-wrap img {
+.demo-iframe-wrap {
     width: 100%;
     height: 210px;
-    object-fit: cover;
+    overflow: hidden;
+    position: relative;
+    background: #f5f4f2;
+}
+.demo-iframe {
+    width: 1280px;
+    height: 900px;
+    border: none;
     display: block;
+    transform: scale(0.233);
+    transform-origin: top left;
+    pointer-events: none;
     transition: transform .4s;
 }
-
-.demo-card:hover .demo-img-wrap img {
-    transform: scale(1.06);
+.demo-iframe-block {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+.demo-card:hover .demo-iframe {
+    transform: scale(0.233) translateY(-12px);
 }
 
+/* Thumbnail image overlay */
+.demo-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    transition: opacity .35s ease, transform .35s ease;
+}
+.demo-thumb-overlay img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.demo-card:hover .demo-thumb-overlay {
+    opacity: 0;
+    transform: scale(1.04);
+}
 .demo-overlay {
     position: absolute;
     inset: 0;
@@ -138,25 +211,19 @@
     opacity: 0;
     transition: opacity .3s;
 }
-
 .demo-card:hover .demo-overlay { opacity: 1; }
-
 .demo-preview-btn {
     background: #fff;
     color: var(--text-dark);
-    text-decoration: none;
+    border: none;
+    cursor: pointer;
     padding: 11px 22px;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
     transition: background .2s;
 }
-
-.demo-preview-btn:hover {
-    background: var(--bg);
-    color: var(--text-dark);
-}
-
+.demo-preview-btn:hover { background: var(--bg); }
 .demo-tag {
     position: absolute;
     top: 12px;
@@ -170,11 +237,7 @@
     padding: 4px 10px;
     border-radius: 6px;
 }
-
-.demo-card-body {
-    padding: 18px 20px 20px;
-}
-
+.demo-card-body { padding: 18px 20px 20px; }
 .demo-card-title {
     font-size: 15px;
     font-weight: 700;
@@ -182,38 +245,246 @@
     letter-spacing: -.02em;
     margin-bottom: 4px;
 }
-
 .demo-card-desc {
     font-size: 13px;
     color: var(--text-mid);
     line-height: 1.55;
     margin-bottom: 14px;
 }
-
 .demo-use-btn {
     font-size: 13px;
     font-weight: 600;
     color: var(--accent);
-    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
     letter-spacing: -.01em;
     transition: color .2s;
 }
-
 .demo-use-btn:hover { color: var(--brand-dark); }
 
-@media (max-width: 1100px) {
-    .demo-grid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 1100px) { .demo-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 780px)  { .demo-grid { grid-template-columns: repeat(2, 1fr); } .demo-h1 { font-size: 34px; } }
+@media (max-width: 500px)  { .demo-grid { grid-template-columns: 1fr; } .demo-wrap { padding: 56px 5% 72px; } }
+
+/* ─── modal styles ─── */
+.tpl-modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, .6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn .2s ease;
+}
+.tpl-modal-bg.active { display: flex; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
-@media (max-width: 780px) {
-    .demo-grid { grid-template-columns: repeat(2, 1fr); }
-    .demo-h1 { font-size: 34px; }
+.tpl-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 1100px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,.25);
+    animation: slideUp .25s cubic-bezier(.4,0,.2,1);
 }
 
-@media (max-width: 500px) {
-    .demo-grid { grid-template-columns: 1fr; }
-    .demo-wrap { padding: 56px 5% 72px; }
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.tpl-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f0eeec;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.tpl-modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.tpl-modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark, #1a1a1a);
+    white-space: nowrap;
+}
+
+.tpl-modal-url {
+    font-size: 12px;
+    font-family: monospace;
+    color: #888;
+    background: #f5f4f2;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e8e6e3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 260px;
+}
+
+.tpl-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.tpl-action-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e8e6e3;
+    border-radius: 8px;
+    background: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.tpl-action-btn:hover { background: #f5f4f2; color: var(--text-dark, #1a1a1a); }
+
+.tpl-modal-body {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.tpl-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #faf9f7;
+    font-size: 13px;
+    color: #888;
+    z-index: 2;
+}
+
+.tpl-spinner {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid #e8e6e3;
+    border-top-color: var(--accent, #FF6B2B);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#templateFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.tpl-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-top: 1px solid #f0eeec;
+    flex-shrink: 0;
+}
+
+.tpl-footer-note {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.tpl-use-btn {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent, #FF6B2B);
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: 10px;
+    transition: opacity .2s;
+}
+.tpl-use-btn:hover { opacity: .88; color: #fff; }
+
+@media (max-width: 600px) {
+    .tpl-modal { height: 95vh; border-radius: 12px; }
+    .tpl-modal-url { display: none; }
+    .tpl-footer-note { display: none; }
 }
 </style>
+
+<script>
+function openPreview(file, title) {
+    const modal  = document.getElementById('templateModal');
+    const frame  = document.getElementById('templateFrame');
+    const loader = document.getElementById('modalLoading');
+    const mTitle = document.getElementById('modalTitle');
+    const mUrl   = document.getElementById('modalUrl');
+    const mLink  = document.getElementById('modalOpenLink');
+
+    mTitle.textContent = title;
+    mUrl.textContent   = file;
+    mLink.href         = file;
+
+    loader.style.display = 'flex';
+    frame.src = '';
+    frame.src = file;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+    const modal = document.getElementById('templateModal');
+    const frame = document.getElementById('templateFrame');
+    modal.classList.remove('active');
+    frame.src = '';
+    document.body.style.overflow = '';
+}
+
+function hideLoading() {
+    document.getElementById('modalLoading').style.display = 'none';
+}
+
+function handleModalBgClick(e) {
+    if (e.target === document.getElementById('templateModal')) {
+        closePreview();
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePreview();
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>
