@@ -1,8 +1,9 @@
 <?php
 
 /**
- * Responsive Portfolio Builder — User Dashboard
- * -------------------------------------------------
+ * Portfolio Builder — User Dashboard
+ * DB: config/db.php (same as edit-portfolio.php)
+ * Tables: users, profiles, projects, skills, certifications, achievements, social_links
  */
 
 require 'config/db.php';
@@ -11,61 +12,87 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// --- Auth guard: real session check (no demo auto-login) ---------------
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header('Location: login.php');
     exit;
 }
 
 $userId = $_SESSION['user_id'];
 
-// Pull name/email from users table (set by login.php)
-$userName = htmlspecialchars($_SESSION['name'] ?? 'User');
+// Pull name/email from users table
+$stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$user = $stmt->fetch();
 
-// Pull profile title (acts as "role") and avatar from profiles table
-$stmt = $pdo->prepare("SELECT title, avatar FROM profiles WHERE user_id = ?");
+if (!$user) {
+    header('Location: login.php');
+    exit;
+}
+
+$userName = htmlspecialchars($user['name']);
+
+// Pull profile title + avatar from profiles table
+$stmt = $pdo->prepare("SELECT title, avatar, bio, location FROM profiles WHERE user_id = ?");
 $stmt->execute([$userId]);
 $profile = $stmt->fetch();
 
-$userRole = htmlspecialchars($profile['title'] ?? 'Member');
+$userRole   = htmlspecialchars($profile['title'] ?? 'Member');
 $userAvatar = $profile['avatar'] ?? null;
+$initials   = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
-$initials = strtoupper(substr($userName, 0, 1) . (strpos($userName, ' ') !== false ? substr($userName, strpos($userName, ' ') + 1, 1) : ''));
+// Live counts from real tables
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM projects WHERE user_id = ?");
+$stmt->execute([$userId]);
+$projectCount = (int) $stmt->fetchColumn();
 
-// --- Demo data (replace with real DB queries later) --------------------
-// Job-match percentages based on the user's skills.
-$jobMatches = [
-    ['role' => 'Frontend Developer',  'percent' => 92],
-    ['role' => 'UI/UX Designer',      'percent' => 78],
-    ['role' => 'Full-Stack Engineer', 'percent' => 64],
-    ['role' => 'WordPress Developer',  'percent' => 55],
-];
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM skills WHERE user_id = ?");
+$stmt->execute([$userId]);
+$skillCount = (int) $stmt->fetchColumn();
 
-// Quick stats for the cards row.
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM certifications WHERE user_id = ?");
+$stmt->execute([$userId]);
+$certCount = (int) $stmt->fetchColumn();
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM achievements WHERE user_id = ?");
+$stmt->execute([$userId]);
+$achievementCount = (int) $stmt->fetchColumn();
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM projects WHERE user_id = ? AND (demo_url <> '' OR github_url <> '')");
+$stmt->execute([$userId]);
+$hasLinks = (int) $stmt->fetchColumn() > 0;
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM social_links WHERE user_id = ?");
+$stmt->execute([$userId]);
+$hasSocial = (int) $stmt->fetchColumn() > 0;
+
+$hasAvatar    = !empty($userAvatar);
+$profileFilled = !empty($profile['bio']) && !empty($profile['location']);
+
 $stats = [
-    ['label' => 'Portfolios',  'value' => 2,   'icon' => '📁'],
-    ['label' => 'Resumes',     'value' => 1,   'icon' => '📄'],
-    ['label' => 'Profile',     'value' => '85%', 'icon' => '👤'],
-    ['label' => 'Templates',   'value' => 6,   'icon' => '🎨'],
+    ['label' => 'Projects',       'value' => $projectCount,    'icon' => '📁'],
+    ['label' => 'Skills',         'value' => $skillCount,       'icon' => '💡'],
+    ['label' => 'Certifications', 'value' => $certCount,        'icon' => '🏆'],
+    ['label' => 'Achievements',   'value' => $achievementCount, 'icon' => '🎯'],
 ];
 
-// The user's portfolios (replace with a DB query, e.g. SELECT * FROM portfolios WHERE user_id = ?).
-$portfolios = [
-    ['title' => 'My Developer Portfolio', 'template' => 'Modern Dark', 'status' => 'Published', 'updated' => '2 days ago', 'views' => 134, 'icon' => '💼'],
-    ['title' => 'UI/UX Case Studies',     'template' => 'Minimal',     'status' => 'Draft',     'updated' => '5 days ago', 'views' => 0,   'icon' => '🎨'],
+$jobMatches = [
+    ['role' => 'AI Engineer',       'percent' => 92],
+    ['role' => 'Software Engineer', 'percent' => 78],
+    ['role' => 'Developer',         'percent' => 64],
+    ['role' => 'UI/UX Designer',    'percent' => 55],
 ];
 
-// Profile-completion checklist (replace 'done' values with real checks).
 $checklist = [
-    ['task' => 'Complete your profile details',         'done' => true],
-    ['task' => 'Add at least 3 skills',                 'done' => true],
-    ['task' => 'Create your first portfolio',           'done' => true],
-    ['task' => 'Upload a profile photo',                'done' => !empty($userAvatar)],
-    ['task' => 'Publish & share your portfolio link',   'done' => false],
+    ['task' => 'Complete your profile details',  'done' => $profileFilled],
+    ['task' => 'Add at least one skill',         'done' => $skillCount > 0],
+    ['task' => 'Create your first project',      'done' => $projectCount > 0],
+    ['task' => 'Upload a profile photo',         'done' => $hasAvatar],
+    ['task' => 'Add GitHub / live demo links',   'done' => $hasLinks],
+    ['task' => 'Add social links',               'done' => $hasSocial],
 ];
-$doneCount    = count(array_filter($checklist, fn($c) => $c['done']));
-$totalTasks   = count($checklist);
-$completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
+$doneCount   = count(array_filter($checklist, fn($c) => $c['done']));
+$totalTasks  = count($checklist);
+$completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,22 +100,23 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — Portfolio Builder</title>
+    <title>Dashboard — PortfolioBuilder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f1117;
-            --surface: #171a23;
-            --surface-2: #1f2430;
-            --line: #2a3040;
-            --text: #e8eaf0;
-            --muted: #9aa3b5;
-            --primary: #6c5ce7;
-            --primary-soft: #8b7cf0;
-            --accent: #ff7a59;
-            --good: #2ecc71;
-            --radius: 16px;
-            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-            font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+            --bg: #f4f1ea;
+            --surface: #fff;
+            --surface-2: #efeade;
+            --line: #e4ddcc;
+            --text: #1d211a;
+            --muted: #797f6f;
+            --primary: #3a4a23;
+            --primary-soft: #5c7038;
+            --accent: #7d9e58;
+            --good: #5c8a3a;
+            --radius: 14px;
+            --shadow: 0 8px 24px rgba(40, 45, 30, .07);
+            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
         }
 
         * {
@@ -108,14 +136,13 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             color: inherit
         }
 
-        /* Layout */
         .app {
             display: grid;
             grid-template-columns: 260px 1fr;
-            min-height: 100vh
+            min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* ── Sidebar ── */
         .sidebar {
             background: var(--surface);
             border-right: 1px solid var(--line);
@@ -132,24 +159,31 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 6px 8px 22px
+            padding: 6px 8px 22px;
         }
 
         .brand .logo {
             width: 40px;
             height: 40px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 11px;
+            background: var(--primary);
             display: grid;
             place-items: center;
             font-weight: 800;
             font-size: 18px;
             color: #fff;
+            flex-shrink: 0;
         }
 
         .brand h1 {
             font-size: 16px;
-            line-height: 1.2
+            line-height: 1.2;
+            font-weight: 800;
+            margin: 0
+        }
+
+        .brand h1 .g {
+            color: var(--accent)
         }
 
         .brand span {
@@ -170,7 +204,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--muted);
-            padding: 14px 12px 6px
+            padding: 14px 12px 6px;
         }
 
         .nav a {
@@ -181,7 +215,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             border-radius: 10px;
             color: var(--muted);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: .18s;
         }
 
@@ -197,12 +231,8 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
         }
 
         .nav a.active {
-            background: linear-gradient(135deg, rgba(108, 92, 231, .22), rgba(255, 122, 89, .12));
+            background: var(--primary);
             color: #fff
-        }
-
-        .nav a.active .ic {
-            filter: none
         }
 
         .logout {
@@ -216,19 +246,19 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             justify-content: center;
             padding: 12px;
             border-radius: 10px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
-            background: rgba(255, 99, 99, .12);
-            color: #ff8585;
-            border: 1px solid rgba(255, 99, 99, .25);
+            background: #f3e3df;
+            color: #a8442f;
+            border: 1px solid #ecc9c1;
             transition: .18s;
         }
 
         .logout a:hover {
-            background: rgba(255, 99, 99, .22)
+            background: #eed6d0
         }
 
-        /* Main */
+        /* ── Main ── */
         .main {
             padding: 28px 34px;
             overflow-x: hidden
@@ -239,11 +269,13 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            margin-bottom: 26px
+            margin-bottom: 26px;
         }
 
         .topbar h2 {
-            font-size: 22px
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -.3px
         }
 
         .topbar p {
@@ -262,12 +294,13 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             width: 42px;
             height: 42px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-soft));
+            background: var(--primary);
             display: grid;
             place-items: center;
             font-weight: 700;
             color: #fff;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .profile .avatar img {
@@ -290,11 +323,11 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             color: var(--muted)
         }
 
-        /* Welcome hero */
+        /* ── Hero ── */
         .hero {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(120deg, #241b4a 0%, #3a2a5e 45%, #5a2f4d 100%);
+            background: linear-gradient(120deg, #3a4a23, #4e6230 55%, #6b8540);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 36px 38px;
@@ -310,19 +343,25 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             width: 240px;
             height: 240px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 122, 89, .45), transparent 70%);
+            background: radial-gradient(circle, rgba(200, 220, 150, .4), transparent 70%);
         }
 
         .hero h3 {
             font-size: 26px;
-            margin-bottom: 10px
+            margin-bottom: 10px;
+            color: #f3f5ec;
+            font-weight: 800;
+            position: relative;
+            z-index: 1
         }
 
         .hero p {
-            color: #cfc8e8;
+            color: #dde5cd;
             max-width: 560px;
             line-height: 1.6;
-            font-size: 15px
+            font-size: 15px;
+            position: relative;
+            z-index: 1
         }
 
         .hero .cta {
@@ -331,25 +370,27 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             align-items: center;
             gap: 8px;
             background: #fff;
-            color: #241b4a;
+            color: #3a4a23;
             font-weight: 700;
             font-size: 14px;
             padding: 12px 22px;
             border-radius: 30px;
             transition: .18s;
+            position: relative;
+            z-index: 1;
         }
 
         .hero .cta:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, .3)
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .18)
         }
 
-        /* Stat cards */
+        /* ── Stat cards ── */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
-            margin-bottom: 28px
+            margin-bottom: 28px;
         }
 
         .stat {
@@ -360,6 +401,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             display: flex;
             align-items: center;
             gap: 14px;
+            box-shadow: var(--shadow);
         }
 
         .stat .emoji {
@@ -367,14 +409,16 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             width: 46px;
             height: 46px;
             border-radius: 12px;
-            background: var(--surface-2);
+            background: #edf1e4;
             display: grid;
-            place-items: center
+            place-items: center;
+            flex-shrink: 0;
         }
 
         .stat b {
             font-size: 22px;
-            display: block
+            display: block;
+            font-weight: 800
         }
 
         .stat span {
@@ -382,76 +426,165 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             color: var(--muted)
         }
 
-        /* Section headers */
         .section-title {
             font-size: 16px;
+            font-weight: 800;
             margin: 6px 0 16px;
             display: flex;
             align-items: center;
-            gap: 8px
+            gap: 8px;
         }
 
-        /* Action grid */
-        .grid {
+        /* ── Quick actions ── */
+        .actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 30px
+            gap: 12px;
+            margin-bottom: 28px
         }
 
-        .card {
+        .action-card {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius);
-            padding: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             transition: .2s;
             cursor: pointer;
         }
 
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: var(--primary);
+        .action-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
             box-shadow: var(--shadow)
         }
 
-        .card .badge {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
+        .action-card .ac-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: #edf1e4;
             display: grid;
             place-items: center;
-            font-size: 22px;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, rgba(108, 92, 231, .25), rgba(255, 122, 89, .18));
+            font-size: 20px;
         }
 
-        .card h4 {
-            font-size: 16px;
-            margin-bottom: 6px
+        .action-card h4 {
+            font-size: 14px;
+            font-weight: 700
         }
 
-        .card p {
-            font-size: 13px;
+        .action-card p {
+            font-size: 12px;
             color: var(--muted);
-            line-height: 1.5
+            line-height: 1.4
         }
 
-        .card .go {
-            margin-top: 14px;
+        .action-card .go {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 4px
+        }
+
+        /* ── Completion banner ── */
+        .completion-banner {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 20px 26px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+        }
+
+        .completion-ring {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+        }
+
+        .completion-ring svg {
+            transform: rotate(-90deg)
+        }
+
+        .completion-ring .ring-bg {
+            fill: none;
+            stroke: var(--surface-2);
+            stroke-width: 6
+        }
+
+        .completion-ring .ring-fill {
+            fill: none;
+            stroke: url(#ringGrad);
+            stroke-width: 6;
+            stroke-linecap: round
+        }
+
+        .completion-ring .ring-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .completion-text h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .completion-text p {
             font-size: 13px;
-            font-weight: 600;
-            color: var(--primary-soft)
+            color: var(--muted)
         }
 
-        /* Job match panel */
+        .completion-btn {
+            margin-left: auto;
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: .18s;
+        }
+
+        .completion-btn:hover {
+            background: var(--primary-soft);
+            transform: translateY(-1px)
+        }
+
+        /* ── Two-column layout ── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px
+        }
+
+        /* ── Panel ── */
         .panel {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 26px;
-            margin-bottom: 24px;
+            margin-bottom: 0;
+            box-shadow: var(--shadow);
         }
 
+        /* ── Job match bars ── */
         .match {
             margin-bottom: 18px
         }
@@ -472,7 +605,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
         }
 
         .match .row .pct {
-            color: var(--primary-soft);
+            color: var(--primary);
             font-weight: 700
         }
 
@@ -490,111 +623,17 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             background: linear-gradient(90deg, var(--primary), var(--accent))
         }
 
-        /* Your Portfolios */
-        .pf-card {
-            display: flex;
-            flex-direction: column;
-            cursor: default
-        }
-
-        .pf-card .pf-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 16px
-        }
-
-        .pf-card .badge {
-            margin-bottom: 0
-        }
-
-        .badge-status {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 11px;
-            border-radius: 20px;
-            letter-spacing: .3px;
-            white-space: nowrap
-        }
-
-        .badge-status.published {
-            background: rgba(46, 204, 113, .15);
-            color: var(--good);
-            border: 1px solid rgba(46, 204, 113, .3)
-        }
-
-        .badge-status.draft {
-            background: rgba(154, 163, 181, .12);
-            color: var(--muted);
-            border: 1px solid var(--line)
-        }
-
-        .pf-card h4 {
-            font-size: 16px;
-            margin-bottom: 4px
-        }
-
-        .pf-card .pf-tmpl {
-            font-size: 12px;
-            color: var(--muted)
-        }
-
-        .pf-card .pf-foot {
-            margin-top: auto;
-            padding-top: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid var(--line);
-            font-size: 13px;
-            color: var(--muted)
-        }
-
-        .pf-card .pf-foot a {
-            color: var(--primary-soft);
-            font-weight: 600
-        }
-
-        /* Create-new tile */
-        .new-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border-style: dashed;
-            color: var(--muted);
-            min-height: 190px;
-            gap: 6px
-        }
-
-        .new-card:hover {
-            color: var(--text);
-            border-color: var(--primary)
-        }
-
-        .new-card .plus {
-            font-size: 36px;
-            line-height: 1;
-            color: var(--primary-soft)
-        }
-
-        .new-card span {
-            font-size: 13px
-        }
-
-        /* Get hire-ready checklist */
+        /* ── Checklist ── */
         .checklist .cl-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 14px;
-            font-size: 14px
+            font-size: 14px;
         }
 
         .checklist .cl-head .pct {
-            color: var(--primary-soft);
+            color: var(--primary);
             font-weight: 700
         }
 
@@ -603,14 +642,14 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             background: var(--surface-2);
             border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 22px
+            margin-bottom: 22px;
         }
 
         .checklist .cl-bar i {
             display: block;
             height: 100%;
             border-radius: 20px;
-            background: linear-gradient(90deg, var(--primary), var(--accent))
+            background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
         .cl-item {
@@ -619,7 +658,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             gap: 12px;
             padding: 11px 0;
             font-size: 14px;
-            border-bottom: 1px solid var(--line)
+            border-bottom: 1px solid var(--line);
         }
 
         .cl-item:last-child {
@@ -633,13 +672,13 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             display: grid;
             place-items: center;
             font-size: 12px;
-            flex-shrink: 0
+            flex-shrink: 0;
         }
 
         .cl-item .tick.on {
-            background: rgba(46, 204, 113, .18);
+            background: #e7efd9;
             color: var(--good);
-            border: 1px solid rgba(46, 204, 113, .35)
+            border: 1px solid #cfe0b6
         }
 
         .cl-item .tick.off {
@@ -653,7 +692,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             text-decoration: line-through
         }
 
-        /* Responsive */
+        /* ── Responsive ── */
         .menu-btn {
             display: none
         }
@@ -663,7 +702,11 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 grid-template-columns: repeat(2, 1fr)
             }
 
-            .grid {
+            .two-col {
+                grid-template-columns: 1fr
+            }
+
+            .actions {
                 grid-template-columns: repeat(2, 1fr)
             }
         }
@@ -695,20 +738,32 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 border: 1px solid var(--line);
                 color: var(--text);
                 font-size: 20px;
-                cursor: pointer
+                cursor: pointer;
             }
 
             .main {
                 padding: 20px
             }
 
-            .grid,
             .stats {
+                grid-template-columns: 1fr
+            }
+
+            .actions {
                 grid-template-columns: 1fr
             }
 
             .profile .who {
                 display: none
+            }
+
+            .completion-banner {
+                flex-direction: column;
+                text-align: center
+            }
+
+            .completion-btn {
+                margin-left: 0
             }
         }
     </style>
@@ -717,32 +772,33 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
 <body>
     <div class="app">
 
-        <!-- Sidebar -->
+        <!-- ── Sidebar ── -->
         <aside class="sidebar" id="sidebar">
             <div class="brand">
                 <div class="logo">P</div>
                 <div>
-                    <h1>Portfolio Builder</h1>
+                    <h1>Portfolio<span class="g">Builder</span></h1>
                     <span>BUILD · SHOWCASE · GET HIRED</span>
                 </div>
             </div>
-
             <nav class="nav">
                 <div class="nav-label">Menu</div>
-                <a href="dashboard.php" class="active"><span class="ic">🏠</span> Dashboard</a>
+                <a href="Dashboard.php" class="active"><span class="ic">🏠</span> Dashboard</a>
+                <a href="edit-portfolio.php"><span class="ic">👤</span> Edit Profile</a>
+                <a href="choose-template.php"><span class="ic">🎨</span> Choose Template</a>
                 <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
-                <a href="edit-portfolio.php"><span class="ic">👤</span> Edit Portfolio</a>
-                <a href="create-resume.php"><span class="ic">📄</span> Create Resume</a>
+                <a href="../samina/resume_module/resume_preview.php"><span class="ic">📄</span> Create Resume</a>
                 <a href="job-match.php"><span class="ic">📊</span> Job Match</a>
-                <a href="templates.php"><span class="ic">🎨</span> Choose Template</a>
             </nav>
             <div class="logout">
-                <a href="logout.php"><span>⏻</span> Logout</a>
+                <a href="Logout.php"><span>⏻</span> Logout</a>
             </div>
         </aside>
 
-        <!-- Main -->
+        <!-- ── Main ── -->
         <main class="main">
+
+            <!-- Topbar -->
             <div class="topbar">
                 <div style="display:flex;align-items:center;gap:14px">
                     <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
@@ -752,10 +808,7 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                     </div>
                 </div>
                 <div class="profile">
-                    <div class="who">
-                        <b><?= $userName ?></b>
-                        <small><?= $userRole ?></small>
-                    </div>
+                    <div class="who"><b><?= $userName ?></b><small><?= $userRole ?></small></div>
                     <div class="avatar">
                         <?php if ($userAvatar): ?>
                             <img src="<?= htmlspecialchars($userAvatar) ?>" alt="<?= $userName ?>">
@@ -766,11 +819,11 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 </div>
             </div>
 
-            <!-- Welcome hero -->
+            <!-- Hero -->
             <section class="hero">
-                <h3>Welcome to our Portfolio Builder</h3>
-                <p>Create a portfolio and get an amazing experience. Showcase your work, build a professional resume, and discover which jobs match your skills — all in one place. Create your portfolio now!</p>
-                <a href="edit-portfolio.php" class="cta">＋ Edit Your Portfolio Now</a>
+                <h3>Welcome to PortfolioBuilder</h3>
+                <p>Create a portfolio and get an amazing experience. Showcase your work, build a professional resume, and discover which jobs match your skills — all in one place.</p>
+                <a href="edit-portfolio.php" class="cta">＋ Start Building Your Portfolio</a>
             </section>
 
             <!-- Stats -->
@@ -783,62 +836,103 @@ $completePct  = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 <?php endforeach; ?>
             </section>
 
-            <!-- Your Portfolios -->
-            <h3 class="section-title">📁 Your Portfolios</h3>
-            <section class="grid">
-                <?php foreach ($portfolios as $p): ?>
-                    <div class="card pf-card">
-                        <div class="pf-top">
-                            <div class="badge"><?= $p['icon'] ?></div>
-                            <span class="badge-status <?= strtolower($p['status']) ?>"><?= htmlspecialchars($p['status']) ?></span>
-                        </div>
-                        <h4><?= htmlspecialchars($p['title']) ?></h4>
-                        <p class="pf-tmpl">Template: <?= htmlspecialchars($p['template']) ?> · Updated <?= htmlspecialchars($p['updated']) ?></p>
-                        <div class="pf-foot">
-                            <span>👁 <?= (int)$p['views'] ?> views</span>
-                            <a href="edit-portfolio.php">Edit →</a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-
-                <a href="edit-portfolio.php" class="card new-card">
-                    <div class="plus">＋</div>
-                    <span>Edit your portfolio</span>
+            <!-- Quick actions -->
+            <h3 class="section-title">⚡ Quick Actions</h3>
+            <section class="actions">
+                <a href="edit-portfolio.php" class="action-card">
+                    <div class="ac-icon">👤</div>
+                    <h4>Edit Portfolio</h4>
+                    <p>Update your projects, skills, bio, and more.</p>
+                    <span class="go">Go →</span>
+                </a>
+                <a href="choose-template.php" class="action-card">
+                    <div class="ac-icon">🎨</div>
+                    <h4>Choose Template</h4>
+                    <p>Pick a design that fits your personal brand.</p>
+                    <span class="go">Go →</span>
+                </a>
+                <a href="job-match.php" class="action-card">
+                    <div class="ac-icon">📊</div>
+                    <h4>Job Match</h4>
+                    <p>See which roles best match your current skills.</p>
+                    <span class="go">Go →</span>
                 </a>
             </section>
 
-            <!-- Get hire-ready -->
-            <h3 class="section-title">✅ Get Hire-Ready</h3>
-            <section class="panel checklist">
-                <div class="cl-head">
-                    <b>Profile completion</b>
-                    <span class="pct"><?= $completePct ?>% complete</span>
+            <!-- Completion banner -->
+            <div class="completion-banner">
+                <div class="completion-ring">
+                    <svg width="64" height="64" viewBox="0 0 64 64">
+                        <defs>
+                            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#3a4a23" />
+                                <stop offset="100%" stop-color="#7d9e58" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="32" cy="32" r="26" />
+                        <circle class="ring-fill" cx="32" cy="32" r="26"
+                            stroke-dasharray="163.4"
+                            stroke-dashoffset="<?= 163.4 - (163.4 * $completePct / 100) ?>" />
+                    </svg>
+                    <div class="ring-label"><?= $completePct ?>%</div>
                 </div>
-                <div class="cl-bar"><i style="width:<?= $completePct ?>%"></i></div>
-                <?php foreach ($checklist as $c): ?>
-                    <div class="cl-item <?= $c['done'] ? 'done' : '' ?>">
-                        <span class="tick <?= $c['done'] ? 'on' : 'off' ?>"><?= $c['done'] ? '✓' : '○' ?></span>
-                        <span><?= htmlspecialchars($c['task']) ?></span>
-                    </div>
-                <?php endforeach; ?>
-            </section>
+                <div class="completion-text">
+                    <h4>Profile <?= $completePct ?>% complete</h4>
+                    <p><?= $doneCount ?> of <?= $totalTasks ?> tasks done — complete your profile to attract more employers.</p>
+                </div>
+                <a href="edit-portfolio.php" class="completion-btn">Complete Profile →</a>
+            </div>
 
-            <!-- Job match -->
-            <h3 class="section-title">📊 Jobs Matched to Your Skills</h3>
-            <section class="panel">
-                <?php foreach ($jobMatches as $m): ?>
-                    <div class="match">
-                        <div class="row">
-                            <b><?= htmlspecialchars($m['role']) ?></b>
-                            <span class="pct"><?= (int)$m['percent'] ?>%</span>
-                        </div>
-                        <div class="bar"><i style="width:<?= (int)$m['percent'] ?>%"></i></div>
-                    </div>
-                <?php endforeach; ?>
-            </section>
+            <!-- Two-column: checklist + job match -->
+            <div class="two-col">
+
+                <div>
+                    <h3 class="section-title">✅ Get Hire-Ready</h3>
+                    <section class="panel checklist">
+                        <div class="cl-head"><b>Profile completion</b><span class="pct"><?= $completePct ?>% complete</span></div>
+                        <div class="cl-bar"><i style="width:<?= $completePct ?>%"></i></div>
+                        <?php foreach ($checklist as $c): ?>
+                            <div class="cl-item <?= $c['done'] ? 'done' : '' ?>">
+                                <span class="tick <?= $c['done'] ? 'on' : 'off' ?>"><?= $c['done'] ? '✓' : '○' ?></span>
+                                <span><?= htmlspecialchars($c['task']) ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </section>
+                </div>
+
+                <div>
+                    <h3 class="section-title">📊 Jobs Matched to Your Skills</h3>
+                    <section class="panel">
+                        <?php foreach ($jobMatches as $m): ?>
+                            <div class="match">
+                                <div class="row">
+                                    <b><?= htmlspecialchars($m['role']) ?></b>
+                                    <span class="pct"><?= (int)$m['percent'] ?>%</span>
+                                </div>
+                                <div class="bar"><i style="width:<?= (int)$m['percent'] ?>%"></i></div>
+                            </div>
+                        <?php endforeach; ?>
+                    </section>
+                </div>
+
+            </div>
 
         </main>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ring = document.querySelector('.ring-fill');
+            if (ring) {
+                var target = ring.getAttribute('stroke-dashoffset');
+                ring.style.strokeDashoffset = '163.4';
+                requestAnimationFrame(function() {
+                    ring.style.transition = 'stroke-dashoffset .8s ease';
+                    ring.style.strokeDashoffset = target;
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -751,9 +751,10 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
             <nav class="nav">
                 <div class="nav-label">Menu</div>
                 <a href="Dashboard.php"><span class="ic">🏠</span> Dashboard</a>
-                <a href="edit-portfolio.php" class="active"><span class="ic">👤</span> Edit Portfolio</a>
+                <a href="edit-portfolio.php" class="active"><span class="ic">👤</span> Edit Profile</a>
                 <a href="choose-template.php"><span class="ic">🎨</span> Choose Template</a>
-                <a href="create-resume.php"><span class="ic">📄</span> Create Resume</a>
+                <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
+                <a href="../samina/resume_module/resume_preview.php"><span class="ic">📄</span> Create Resume</a>
                 <a href="job-match.php"><span class="ic">📊</span> Job Match</a>
             </nav>
             <div class="logout">
