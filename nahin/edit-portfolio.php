@@ -343,7 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        header("Location: demo.php");
+        header("Location: choose-template.php");
         exit;
     }
 }
@@ -752,8 +752,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
                 <div class="nav-label">Menu</div>
                 <a href="Dashboard.php"><span class="ic">🏠</span> Dashboard</a>
                 <a href="edit-portfolio.php" class="active"><span class="ic">👤</span> Edit Portfolio</a>
-                <a href="demo.php"><span class="ic">🎨</span> Choose Template</a>
-                <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
+                <a href="choose-template.php"><span class="ic">🎨</span> Choose Template</a>
                 <a href="create-resume.php"><span class="ic">📄</span> Create Resume</a>
                 <a href="job-match.php"><span class="ic">📊</span> Job Match</a>
             </nav>
