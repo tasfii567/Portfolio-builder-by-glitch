@@ -162,7 +162,7 @@ $latest_messages = mysqli_query($con, $latest_messages_sql);
                     </div>
                 </div>
 
-             /   <div class="count-box">
+               <div class="count-box">
                     <i class="fas fa-user-times"></i>
                     <div>
                         <h3>Inactive Users</h3>
