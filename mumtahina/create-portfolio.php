@@ -222,84 +222,11 @@ a{text-decoration:none;color:inherit}
       </div>
       <iframe id="previewFrame" class="previewframe" src="<?= htmlspecialchars($shareUrl) ?>" title="Portfolio preview"></iframe>
     </div>
-    <p class="hint" style="margin:14px 0 8px">🔗 Your shareable portfolio link:</p>
-    <div class="share">
-      <input id="shareUrl" type="text" readonly value="<?= htmlspecialchars($shareUrl) ?>">
-      <button class="btn btn-ghost" onclick="copyUrl()">Copy</button>
-      <a class="btn btn-primary" href="<?= htmlspecialchars($shareUrl) ?>" target="_blank">Open ↗</a>
-    </div>
-    <p class="hint" style="margin-top:10px">Send this link to recruiters — anyone can view it, no login needed. The preview refreshes each time you add or delete a project.</p>
+   
+    
   </section>
 
-  <!-- Template in use -->
-  <section class="panel">
-    <div class="tpl-note">
-      <div>🎨 Current template: <b><?= htmlspecialchars($curTplName) ?></b></div>
-      <a class="btn btn-ghost" href="templates.php">Change template</a>
-    </div>
-  </section>
 
-  <!-- Add a project -->
-  <section class="panel">
-    <h3>➕ Add a Project</h3>
-    <form method="post" enctype="multipart/form-data">
-      <input type="hidden" name="action" value="add_project">
-      <div class="form-grid">
-        <div class="field full">
-          <label>Project title *</label>
-          <input type="text" name="title" maxlength="150" placeholder="e.g. Weather Dashboard App" required>
-        </div>
-        <div class="field full">
-          <label>Description</label>
-          <textarea name="description" placeholder="What does this project do? Tech used, your role, etc."></textarea>
-        </div>
-        <div class="field">
-          <label>GitHub link</label>
-          <input type="url" name="github_link" placeholder="https://github.com/you/project">
-        </div>
-        <div class="field">
-          <label>Live demo link</label>
-          <input type="url" name="live_link" placeholder="https://your-demo.com">
-        </div>
-        <div class="field full">
-          <label>Project images</label>
-          <input type="file" name="images[]" accept="image/*" multiple>
-          <span class="hint">JPG, PNG, GIF or WEBP · up to 4&nbsp;MB each · multiple allowed.</span>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Project</button>
-      </div>
-    </form>
-  </section>
-
-  <!-- Existing projects -->
-  <section class="panel">
-    <h3>📁 Your Projects (<?= count($projects) ?>)</h3>
-    <?php if (!$projects): ?>
-      <div class="empty">No projects yet. Add your first one above 👆</div>
-    <?php else: ?>
-      <?php foreach ($projects as $pr): ?>
-      <div class="proj">
-        <div class="thumb">
-          <?php if (!empty($pr['images'])): ?><img src="<?= htmlspecialchars($pr['images'][0]) ?>" alt=""><?php else: ?>🖼<?php endif; ?>
-        </div>
-        <div class="body">
-          <h4><?= htmlspecialchars($pr['title']) ?></h4>
-          <?php if ($pr['description']): ?><p class="desc"><?= nl2br(htmlspecialchars($pr['description'])) ?></p><?php endif; ?>
-          <div class="links">
-            <?php if ($pr['github_link']): ?><a class="tag" href="<?= htmlspecialchars($pr['github_link']) ?>" target="_blank">⌥ GitHub</a><?php endif; ?>
-            <?php if ($pr['live_link']): ?><a class="tag" href="<?= htmlspecialchars($pr['live_link']) ?>" target="_blank">↗ Live Demo</a><?php endif; ?>
-          </div>
-        </div>
-        <div class="meta">
-          <span class="count"><?= count($pr['images']) ?> image<?= count($pr['images']) === 1 ? '' : 's' ?></span>
-          <a class="del" href="create-portfolio.php?delete=<?= (int)$pr['id'] ?>" onclick="return confirm('Delete this project?')">🗑 Delete</a>
-        </div>
-      </div>
-      <?php endforeach; ?>
-    <?php endif; ?>
-  </section>
 
   <!-- Done -->
   <section class="done-bar">
@@ -307,7 +234,7 @@ a{text-decoration:none;color:inherit}
       <b>✅ Portfolio ready!</b>
       <span>Preview your live link above, then build your downloadable CV.</span>
     </div>
-    <a class="btn-done" href="create-resume.php">Done — Build my Resume →</a>
+    <a class="btn-done" href="create-resume.php">Build my Resume →</a>
   </section>
 
 </div>
