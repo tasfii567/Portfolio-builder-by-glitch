@@ -609,7 +609,7 @@
         <a href="<?= $base ?>choose-template.php"><span class="ic">🎨</span> Choose Template</a>
         <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
         <a href="resume_preview.php" class="active"><span class="ic">📄</span> Create Resume</a>
-        <a href="<?= $base ?>job-match.php"><span class="ic">📊</span> Job Match</a>
+        <a href="<?= $base ?>../job-match-ai/job-match.php"><span class="ic">📊</span> Job Match</a>
       </nav>
       <div class="logout">
         <a href="<?= $base ?>Logout.php"><span>⏻</span> Logout</a>
