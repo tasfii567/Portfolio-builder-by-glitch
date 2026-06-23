@@ -26,7 +26,6 @@
             <p class="footer-title">Product</p>
             <ul class="list-unstyled footer-links">
                 <li><a href="demo.php"><i class="bi bi-grid me-1"></i> Templates</a></li>
-                <li><a href="demo.php"><i class="bi bi-eye me-1"></i> Demo</a></li>
                 <li><a href="#"><i class="bi bi-file-earmark-arrow-down me-1"></i> Resume Export</a></li>
                 <li><a href="#"><i class="bi bi-share me-1"></i> Publish Portfolio</a></li>
             </ul>

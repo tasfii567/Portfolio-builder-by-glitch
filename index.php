@@ -236,8 +236,8 @@ body{font-family:'Inter',sans-serif!important;background:#f7f3ea;color:#2b2926;o
   <div class="container text-center">
     <div style="max-width:680px;margin:0 auto;">
       <p class="test-quote">"I had a portfolio live in 20 minutes. My recruiter said it was the most professional one they'd seen."</p>
-      <div class="test-av">RK</div>
-      <div class="test-name">Rakib Khan</div>
+      <div class="test-av">UD</div>
+      <div class="test-name">Uma Dhar</div>
       <div class="test-role">Junior Developer · Dhaka</div>
     </div>
   </div>
@@ -246,9 +246,9 @@ body{font-family:'Inter',sans-serif!important;background:#f7f3ea;color:#2b2926;o
 <!-- STATS -->
 <div class="container py-5 fade-up">
   <div class="stats-grid">
-    <div class="stat-box"><div class="stat-big">500<span>+</span></div><div class="stat-lbl">Portfolios published</div></div>
-    <div class="stat-box"><div class="stat-big">20<span>+</span></div><div class="stat-lbl">Premium templates</div></div>
-    <div class="stat-box"><div class="stat-big">98<span>%</span></div><div class="stat-lbl">User satisfaction</div></div>
+    <div class="stat-box"><div class="stat-big">50<span>+</span></div><div class="stat-lbl">Portfolios published</div></div>
+    <div class="stat-box"><div class="stat-big">5<span>+</span></div><div class="stat-lbl">Premium templates</div></div>
+    <div class="stat-box"><div class="stat-big">7<span>%</span></div><div class="stat-lbl">User satisfaction</div></div>
     <div class="stat-box"><div class="stat-big">0<span>৳</span></div><div class="stat-lbl">Cost to start</div></div>
   </div>
 </div>

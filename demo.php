@@ -11,13 +11,11 @@
     <?php
     $templates = [
         ['img' => '01', 'title' => 'Creative Portfolio',    'desc' => 'Modern Creative Agency Design',   'tag' => 'Popular',   'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',      'tag' => 'Dev',       'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',        'tag' => 'Visual',    'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',     'tag' => 'Design',    'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',  'tag' => 'Freelance', 'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',    'tag' => 'Student',   'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Artist Portfolio',      'desc' => 'Gallery Style Creative Layout',   'tag' => 'Art',       'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Business Portfolio',    'desc' => 'Corporate Professional Design',   'tag' => 'Business',  'file' => 'temp1.html'],
+        ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',      'tag' => 'Dev',       'file' => 'temp2.html'],
+        ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',        'tag' => 'Visual',    'file' => 'temp3.html'],
+        ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',     'tag' => 'Design',    'file' => 'temp4.html'],
+        ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',  'tag' => 'Freelance', 'file' => 'temp5.html'],
+        ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',    'tag' => 'Student',   'file' => 'temp6.html'],
     ];
     ?>
 
