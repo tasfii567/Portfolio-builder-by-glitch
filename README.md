@@ -2,19 +2,6 @@
 
 A comprehensive web application developed in PHP that empowers users to effortlessly create, customize, and manage professional online portfolios using a selection of modern templates. This platform also features an administrative panel for overall system management and includes an innovative AI-powered job matching component to connect users with relevant career opportunities.
 
-## Table of Contents
-
-- [About the Project](#about-the-project)
-- [Key Features](#key-features)
-- [Technologies Used](#technologies-used)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation and Setup](#installation-and-setup)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
 
 ## About the Project
 
