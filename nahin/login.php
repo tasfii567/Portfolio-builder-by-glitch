@@ -99,6 +99,9 @@ require 'includes/header.php';
                 <?php if ($justRegistered && empty($errors)): ?>
                     <div class="login-success">Registration successful! Please log in.</div>
                 <?php endif; ?>
+                <?php if (isset($_GET['reset']) && empty($errors)): ?>
+                    <div class="login-success">Password reset successfully! Please log in.</div>
+                <?php endif; ?>
 
                 <?php if (!empty($errors)): ?>
                     <div class="login-errors">
@@ -129,7 +132,7 @@ require 'includes/header.php';
                     <div class="lf-group">
                         <div class="lf-label-row">
                             <label class="lf-label" for="lf-pass">Password</label>
-                            <a href="#" class="lf-forgot">Forgot password?</a>
+                            <a href="forget_password.php" class="lf-forgot">Forgot password?</a>
                         </div>
                         <div class="lf-input-wrap">
                             <i class="bi bi-lock lf-icon"></i>
@@ -417,7 +420,9 @@ require 'includes/header.php';
     }
 
     /* ── Eye toggle (ADDED) ─────────────── */
-    .lf-input-pass { padding-right: 40px; }
+    .lf-input-pass {
+        padding-right: 40px;
+    }
 
     .lf-eye {
         position: absolute;
@@ -435,7 +440,9 @@ require 'includes/header.php';
         align-items: center;
     }
 
-    .lf-eye:hover { color: var(--text-dark); }
+    .lf-eye:hover {
+        color: var(--text-dark);
+    }
 
     /* ── Button ─────────────────────────── */
     .lf-btn {
@@ -521,17 +528,17 @@ require 'includes/header.php';
 </style>
 
 <script>
-function togglePass(inputId, btn) {
-    const input = document.getElementById(inputId);
-    const icon  = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type     = 'text';
-        icon.className = 'bi bi-eye-slash';
-    } else {
-        input.type     = 'password';
-        icon.className = 'bi bi-eye';
+    function togglePass(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
     }
-}
 </script>
 
 <?php require 'includes/footer.php'; ?>
