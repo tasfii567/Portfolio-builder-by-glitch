@@ -3,21 +3,33 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
 require __DIR__ . '/config/db.php';
 
-function h($value): string
+function tp_h($value): string
 {
     return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-function vp_fetch_all(PDO $pdo, string $table, int $userId): array
+if (!function_exists('h')) {
+    function h($value): string
+    {
+        return tp_h($value);
+    }
+}
+
+function tp_fetch_all(PDO $pdo, string $table, int $userId): array
 {
     $stmt = $pdo->prepare("SELECT * FROM {$table} WHERE user_id = ? ORDER BY id ASC");
     $stmt->execute([$userId]);
     return $stmt->fetchAll();
 }
 
-function vp_social_icon(string $platform): string
+function tp_social_icon(string $platform): string
 {
     $icons = [
         'GitHub' => '<path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.39.6.11.8-.26.8-.58v-2.23C5.67 21.3 5 19.25 5 19.25c-.55-1.39-1.33-1.75-1.33-1.75-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23.96-.27 1.98-.4 3-.4s2.05.13 3 .4c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.23 2.88.11 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.82 1.1.82 2.22v3.3c0 .32.19.69.8.57C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/>',
@@ -30,43 +42,34 @@ function vp_social_icon(string $platform): string
     return $icons[$platform] ?? $icons['Portfolio Website'];
 }
 
-function vp_slug_base(string $text): string
-{
-    $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $text), '-'));
-    return $slug !== '' ? $slug : 'portfolio';
-}
+$userId = (int) $_SESSION['user_id'];
 
-$slug = trim((string) ($_GET['u'] ?? ''));
-if ($slug === '') {
-    http_response_code(404);
-    echo 'Portfolio not found.';
+$stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE id = ? LIMIT 1");
+$stmt->execute([$userId]);
+$user = $stmt->fetch();
+
+if (!$user) {
+    header('Location: login.php');
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT p.*, u.name, u.email FROM profiles p INNER JOIN users u ON u.id = p.user_id WHERE p.public_slug = ? LIMIT 1");
-$stmt->execute([$slug]);
-$row = $stmt->fetch();
+$stmt = $pdo->prepare("SELECT * FROM profiles WHERE user_id = ? LIMIT 1");
+$stmt->execute([$userId]);
+$profile = $stmt->fetch() ?: [];
 
-if (!$row) {
-    http_response_code(404);
-    echo 'Portfolio not found.';
-    exit;
+$templateId = (int) ($_GET['template_id'] ?? ($profile['selected_template_id'] ?? 0));
+if ($templateId <= 0) {
+    $stmt = $pdo->query("SELECT id FROM templates WHERE status = 'active' ORDER BY id ASC LIMIT 1");
+    $templateId = (int) $stmt->fetchColumn();
 }
 
-if (empty($row['is_published'])) {
-    http_response_code(404);
-    echo 'Portfolio is not published yet.';
-    exit;
-}
-
-$templateId = (int) ($row['selected_template_id'] ?? 0);
 $stmt = $pdo->prepare("SELECT id, name, renderer_file, status FROM templates WHERE id = ? LIMIT 1");
 $stmt->execute([$templateId]);
 $template = $stmt->fetch();
 
 if (!$template || ($template['status'] ?? '') !== 'active') {
     http_response_code(404);
-    echo 'Portfolio is not published yet.';
+    echo 'Template not found.';
     exit;
 }
 
@@ -77,17 +80,13 @@ if (!is_file($rendererFile)) {
     exit;
 }
 
-$userId = (int) $row['user_id'];
-$user = ['id' => $userId, 'name' => $row['name'], 'email' => $row['email']];
-$profile = $row;
-
-$skills = vp_fetch_all($pdo, 'skills', $userId);
-$projects = vp_fetch_all($pdo, 'projects', $userId);
-$experience = vp_fetch_all($pdo, 'experience', $userId);
-$education = vp_fetch_all($pdo, 'education', $userId);
-$certifications = vp_fetch_all($pdo, 'certifications', $userId);
-$achievements = vp_fetch_all($pdo, 'achievements', $userId);
-$socialLinks = vp_fetch_all($pdo, 'social_links', $userId);
+$skills = tp_fetch_all($pdo, 'skills', $userId);
+$projects = tp_fetch_all($pdo, 'projects', $userId);
+$experience = tp_fetch_all($pdo, 'experience', $userId);
+$education = tp_fetch_all($pdo, 'education', $userId);
+$certifications = tp_fetch_all($pdo, 'certifications', $userId);
+$achievements = tp_fetch_all($pdo, 'achievements', $userId);
+$socialLinks = tp_fetch_all($pdo, 'social_links', $userId);
 
 $name = $user['name'] ?? 'User';
 $email = $user['email'] ?? '';
@@ -118,7 +117,7 @@ if (!empty($experience)) {
 
 $skillTagsHtml = '';
 foreach ($skills as $skill) {
-    $skillTagsHtml .= '<span class="stag">' . h($skill['skill_name']) . '</span>';
+    $skillTagsHtml .= '<span class="stag">' . tp_h($skill['skill_name']) . '</span>';
 }
 if ($skillTagsHtml === '') {
     $skillTagsHtml = '<span class="stag">Add skills in Edit Portfolio</span>';
@@ -129,65 +128,65 @@ foreach ($experience as $exp) {
     $startFmt = !empty($exp['start_date']) ? date('M Y', strtotime($exp['start_date'])) : '';
     $endFmt = !empty($exp['currently_working']) ? 'Present' : (!empty($exp['end_date']) ? date('M Y', strtotime($exp['end_date'])) : '');
     $period = trim($startFmt . ($endFmt ? ' - ' . $endFmt : ''));
-    $experienceHtml .= '<article class="item"><h3>' . h($exp['position']) . '</h3><p>' . h($exp['company']) . '</p>' . ($period !== '' ? '<span>' . h($period) . '</span>' : '') . '</article>';
+    $experienceHtml .= '<article class="item"><h3>' . tp_h($exp['position']) . '</h3><p>' . tp_h($exp['company']) . '</p>' . ($period !== '' ? '<span>' . tp_h($period) . '</span>' : '') . '</article>';
 }
 
 $educationHtml = '';
 foreach ($education as $edu) {
     $period = trim(($edu['start_year'] ?? '') . (!empty($edu['end_year']) ? ' - ' . $edu['end_year'] : ''));
-    $educationHtml .= '<article class="item"><h3>' . h($edu['institution']) . '</h3><p>' . h($edu['degree']) . '</p>' . ($period !== '' ? '<span>' . h($period) . '</span>' : '') . '</article>';
+    $educationHtml .= '<article class="item"><h3>' . tp_h($edu['institution']) . '</h3><p>' . tp_h($edu['degree']) . '</p>' . ($period !== '' ? '<span>' . tp_h($period) . '</span>' : '') . '</article>';
 }
 
 $projectsHtml = '';
 foreach ($projects as $project) {
     $projectsHtml .= '<article class="item">';
     if (!empty($project['image_path'])) {
-        $projectsHtml .= '<img src="' . h($project['image_path']) . '" alt="">';
+        $projectsHtml .= '<img src="' . tp_h($project['image_path']) . '" alt="">';
     }
-    $projectsHtml .= '<h3>' . h($project['title']) . '</h3>';
+    $projectsHtml .= '<h3>' . tp_h($project['title']) . '</h3>';
     if (!empty($project['description'])) {
-        $projectsHtml .= '<p>' . nl2br(h($project['description'])) . '</p>';
+        $projectsHtml .= '<p>' . nl2br(tp_h($project['description'])) . '</p>';
     }
     if (!empty($project['technologies'])) {
         $projectsHtml .= '<div class="chips">';
         foreach (array_filter(array_map('trim', explode(',', (string) $project['technologies']))) as $tech) {
-            $projectsHtml .= '<span>' . h($tech) . '</span>';
+            $projectsHtml .= '<span>' . tp_h($tech) . '</span>';
         }
         $projectsHtml .= '</div>';
     }
     if (!empty($project['demo_url'])) {
-        $projectsHtml .= '<a href="' . h($project['demo_url']) . '" target="_blank" rel="noopener">Live Demo</a>';
+        $projectsHtml .= '<a href="' . tp_h($project['demo_url']) . '" target="_blank" rel="noopener">Live Demo</a>';
     }
     if (!empty($project['github_url'])) {
-        $projectsHtml .= '<a href="' . h($project['github_url']) . '" target="_blank" rel="noopener">GitHub</a>';
+        $projectsHtml .= '<a href="' . tp_h($project['github_url']) . '" target="_blank" rel="noopener">GitHub</a>';
     }
     $projectsHtml .= '</article>';
 }
 
 $certsHtml = '';
 foreach ($certifications as $cert) {
-    $certsHtml .= '<article class="item"><h3>' . h($cert['name']) . '</h3>' . (!empty($cert['issuing_org']) ? '<p>' . h($cert['issuing_org']) . '</p>' : '') . '</article>';
+    $certsHtml .= '<article class="item"><h3>' . tp_h($cert['name']) . '</h3>' . (!empty($cert['issuing_org']) ? '<p>' . tp_h($cert['issuing_org']) . '</p>' : '') . '</article>';
 }
 
 $achievementsHtml = '';
 foreach ($achievements as $ach) {
-    $achievementsHtml .= '<article class="item"><h3>' . h($ach['title']) . '</h3>' . (!empty($ach['description']) ? '<p>' . h($ach['description']) . '</p>' : '') . '</article>';
+    $achievementsHtml .= '<article class="item"><h3>' . tp_h($ach['title']) . '</h3>' . (!empty($ach['description']) ? '<p>' . tp_h($ach['description']) . '</p>' : '') . '</article>';
 }
 
 $socialLinksHtml = '';
 foreach ($socialLinks as $link) {
-    $socialLinksHtml .= '<a href="' . h($link['url']) . '" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true">' . vp_social_icon((string) $link['platform']) . '</svg><span>' . h($link['platform']) . '</span></a>';
+    $socialLinksHtml .= '<a href="' . tp_h($link['url']) . '" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true">' . tp_social_icon((string) $link['platform']) . '</svg><span>' . tp_h($link['platform']) . '</span></a>';
 }
 if ($contactEmail) {
-    $socialLinksHtml = '<a href="mailto:' . h($contactEmail) . '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>' . h($contactEmail) . '</span></a>' . $socialLinksHtml;
+    $socialLinksHtml = '<a href="mailto:' . tp_h($contactEmail) . '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>' . tp_h($contactEmail) . '</span></a>' . $socialLinksHtml;
 }
 
 $avatarHtml = $avatar
-    ? '<img src="' . h($avatar) . '" alt="' . h($name) . '">'
-    : '<div class="avatar-fallback">' . h(strtoupper(substr($name, 0, 1) . (strpos($name, ' ') !== false ? substr($name, strpos($name, ' ') + 1, 1) : ''))) . '</div>';
+    ? '<img src="' . tp_h($avatar) . '" alt="' . tp_h($name) . '">'
+    : '<div class="avatar-fallback">' . tp_h(strtoupper(substr($name, 0, 1) . (strpos($name, ' ') !== false ? substr($name, strpos($name, ' ') + 1, 1) : ''))) . '</div>';
 
 $showCerts = !empty($certifications);
 $showAchievements = !empty($achievements);
-$showOwnerControls = !empty($_SESSION['user_id']) && (int) $_SESSION['user_id'] === $userId;
+$showOwnerControls = false;
 
 require $rendererFile;
