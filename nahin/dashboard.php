@@ -65,8 +65,48 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM social_links WHERE user_id = ?");
 $stmt->execute([$userId]);
 $hasSocial = (int) $stmt->fetchColumn() > 0;
 
+$stmt = $pdo->prepare("SELECT skill_name FROM skills WHERE user_id = ? ORDER BY id ASC");
+$stmt->execute([$userId]);
+$userSkills = array_values(array_filter(array_map(
+    fn($row) => strtolower(trim((string) $row['skill_name'])),
+    $stmt->fetchAll()
+)));
+
 $hasAvatar    = !empty($userAvatar);
 $profileFilled = !empty($profile['bio']) && !empty($profile['location']);
+
+function build_job_matches(array $skills): array
+{
+    $roles = [
+        ['role' => 'PHP Developer',       'keywords' => ['php', 'laravel', 'mysql', 'api', 'javascript', 'html', 'css']],
+        ['role' => 'Full Stack Developer', 'keywords' => ['php', 'javascript', 'react', 'mysql', 'api', 'docker']],
+        ['role' => 'Frontend Developer',   'keywords' => ['javascript', 'react', 'vue', 'html', 'css', 'tailwind', 'bootstrap']],
+        ['role' => 'Backend Developer',    'keywords' => ['php', 'laravel', 'node', 'api', 'mysql', 'postgresql', 'docker']],
+        ['role' => 'UI/UX Designer',       'keywords' => ['ui', 'ux', 'figma', 'accessibility', 'responsive design']],
+        ['role' => 'DevOps Engineer',      'keywords' => ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'linux', 'nginx']],
+    ];
+
+    $matches = [];
+    foreach ($roles as $role) {
+        $hits = 0;
+        foreach ($role['keywords'] as $keyword) {
+            foreach ($skills as $skill) {
+                if (str_contains($skill, $keyword)) {
+                    $hits++;
+                    break;
+                }
+            }
+        }
+
+        if ($hits > 0) {
+            $percent = (int) round(($hits / max(1, count($role['keywords']))) * 100);
+            $matches[] = ['role' => $role['role'], 'percent' => min(100, max(10, $percent))];
+        }
+    }
+
+    usort($matches, fn($a, $b) => $b['percent'] <=> $a['percent'] ?: strcmp($a['role'], $b['role']));
+    return array_slice($matches, 0, 4);
+}
 
 $stats = [
     ['label' => 'Projects',       'value' => $projectCount,    'icon' => '📁'],
@@ -75,12 +115,7 @@ $stats = [
     ['label' => 'Achievements',   'value' => $achievementCount, 'icon' => '🎯'],
 ];
 
-$jobMatches = [
-    ['role' => 'AI Engineer',       'percent' => 92],
-    ['role' => 'Software Engineer', 'percent' => 78],
-    ['role' => 'Developer',         'percent' => 64],
-    ['role' => 'UI/UX Designer',    'percent' => 55],
-];
+$jobMatches = build_job_matches($userSkills);
 
 $checklist = [
     ['task' => 'Complete your profile details',  'done' => $profileFilled],
@@ -903,15 +938,19 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 <div>
                     <h3 class="section-title">📊 Jobs Matched to Your Skills</h3>
                     <section class="panel">
-                        <?php foreach ($jobMatches as $m): ?>
-                            <div class="match">
-                                <div class="row">
-                                    <b><?= htmlspecialchars($m['role']) ?></b>
-                                    <span class="pct"><?= (int)$m['percent'] ?>%</span>
+                        <?php if ($jobMatches === []): ?>
+                            <p class="empty">Add skills to see matching roles here.</p>
+                        <?php else: ?>
+                            <?php foreach ($jobMatches as $m): ?>
+                                <div class="match">
+                                    <div class="row">
+                                        <a href="../job-match-ai/job-match.php?target_role=<?= urlencode($m['role']) ?>"><b><?= htmlspecialchars($m['role']) ?></b></a>
+                                        <span class="pct"><?= (int)$m['percent'] ?>%</span>
+                                    </div>
+                                    <div class="bar"><i style="width:<?= (int)$m['percent'] ?>%"></i></div>
                                 </div>
-                                <div class="bar"><i style="width:<?= (int)$m['percent'] ?>%"></i></div>
-                            </div>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </section>
                 </div>
 
