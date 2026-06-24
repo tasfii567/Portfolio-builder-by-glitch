@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ../nahin/login.php');
     exit;
 }
 
@@ -21,13 +21,13 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch();
 
 if (!$user) {
-    header('Location: login.php');
+    header('Location: ../nahin/login.php');
     exit;
 }
 
 $userName = htmlspecialchars($user['name']);
 
-$stmt = $pdo->prepare("SELECT title, avatar FROM profiles WHERE user_id = ?");
+$stmt = $pdo->prepare("SELECT title, avatar, location FROM profiles WHERE user_id = ?");
 $stmt->execute([$userId]);
 $profile = $stmt->fetch();
 
@@ -35,13 +35,12 @@ $userRole   = htmlspecialchars($profile['title'] ?? 'Member');
 $userAvatar = $profile['avatar'] ?? null;
 $initials   = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
-// Pull skills from DB to pre-fill portfolio text
+// Pull saved portfolio data from edit-portfolio so the matcher can prefill itself.
 $stmt = $pdo->prepare("SELECT skill_name, level FROM skills WHERE user_id = ? ORDER BY id ASC");
 $stmt->execute([$userId]);
 $dbSkills = $stmt->fetchAll();
 $skillsText = implode(', ', array_column($dbSkills, 'skill_name'));
 
-// Pull projects from DB
 $stmt = $pdo->prepare("SELECT title, description, technologies FROM projects WHERE user_id = ? ORDER BY id ASC");
 $stmt->execute([$userId]);
 $dbProjects = $stmt->fetchAll();
@@ -50,8 +49,10 @@ foreach ($dbProjects as $p) {
     $projectsText .= $p['title'] . ': ' . $p['description'] . ' Technologies: ' . $p['technologies'] . "\n";
 }
 
-// Auto-build portfolio text from DB if nothing in session
 $autoPortfolio = trim($skillsText . "\n\n" . $projectsText);
+$defaultPortfolio = $autoPortfolio !== ''
+    ? $autoPortfolio
+    : "Paste your portfolio, resume, LinkedIn About section, GitHub profile, or project descriptions here.\n\nExample:\nPHP developer with Laravel, MySQL, REST API, JavaScript, React, Docker, AWS, testing, and AI automation experience.";
 
 // ── Job match logic (unchanged from original) ────────────────────────
 
@@ -79,15 +80,15 @@ $synonyms = [
     'wp'                  => 'wordpress',
 ];
 
-$defaultPortfolio = $autoPortfolio !== ''
-    ? $autoPortfolio
-    : "Paste your portfolio, resume, LinkedIn About section, GitHub profile, or project descriptions here.\n\nExample:\nPHP developer with Laravel, MySQL, REST API, JavaScript, React, Docker, AWS, testing, and AI automation experience.";
-
 $portfolio   = trim((string)($_POST['portfolio']    ?? ($_SESSION['portfolio']    ?? $defaultPortfolio)));
-$targetRole  = trim((string)($_POST['target_role']  ?? ($_SESSION['target_role']  ?? 'PHP Developer')));
-$location    = trim((string)($_POST['location']     ?? ($_SESSION['location']     ?? 'Remote')));
+$targetRole  = trim((string)($_POST['target_role']  ?? ($_GET['target_role'] ?? '')));
+$location    = trim((string)($_POST['location']     ?? ($_SESSION['location']     ?? ($profile['location'] ?? ''))));
 $experience  = trim((string)($_POST['experience']   ?? ($_SESSION['experience']   ?? 'mid')));
 $jobText     = trim((string)($_POST['job_text']     ?? ''));
+
+if ($targetRole === '') {
+    $targetRole = trim((string)($_SESSION['target_role'] ?? ($profile['title'] ?? '')));
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['portfolio']    = $portfolio;
@@ -162,10 +163,10 @@ function build_searches(string $role, string $location, string $experience, arra
     $encodedLocation = rawurlencode($location);
     $experienceMap  = ['entry' => '2', 'mid' => '3', 'senior' => '4'];
     $linkedInLevel  = $experienceMap[$experience] ?? '3';
+    $displayRole    = $role !== '' ? $role : 'Target Role';
     return [
-        ['board' => 'LinkedIn',        'title' => $role . ' roles matching ' . count($top) . ' portfolio skills', 'url' => "https://www.linkedin.com/jobs/search/?keywords={$encodedQuery}&location={$encodedLocation}&f_E={$linkedInLevel}", 'query' => $query, 'note' => 'Opens LinkedIn with your role, location, and strongest extracted skills.'],
-        ['board' => 'Indeed',          'title' => $role . ' openings filtered by your strongest skills',    'url' => "https://www.indeed.com/jobs?q={$encodedQuery}&l={$encodedLocation}",                                                                           'query' => $query, 'note' => 'Opens Indeed with the same matching query so you can compare postings quickly.'],
-        ['board' => 'LinkedIn Boolean', 'title' => 'Narrow search for high-confidence matches',            'url' => 'https://www.linkedin.com/jobs/search/?keywords=' . rawurlencode('"' . $role . '" ' . implode(' OR ', array_map(fn($s) => '"' . $s . '"', array_slice($top, 0, 4)))) . "&location={$encodedLocation}", 'query' => '"' . $role . '" ' . implode(' OR ', array_map(fn($s) => '"' . $s . '"', array_slice($top, 0, 4))), 'note' => 'Useful when broad searches produce noisy results.'],
+        ['board' => 'Indeed',          'title' => $displayRole . ' openings filtered by your strongest skills',    'url' => "https://www.indeed.com/jobs?q={$encodedQuery}&l={$encodedLocation}",                                                                           'query' => $query, 'note' => 'Opens Indeed with the same matching query so you can compare postings quickly.'],
+        ['board' => 'LinkedIn Boolean', 'title' => 'Narrow search for high-confidence matches',            'url' => 'https://www.linkedin.com/jobs/search/?keywords=' . rawurlencode('"' . $displayRole . '" ' . implode(' OR ', array_map(fn($s) => '"' . $s . '"', array_slice($top, 0, 4)))) . "&location={$encodedLocation}", 'query' => '"' . $displayRole . '" ' . implode(' OR ', array_map(fn($s) => '"' . $s . '"', array_slice($top, 0, 4))), 'note' => 'Useful when broad searches produce noisy results.'],
     ];
 }
 
@@ -891,13 +892,13 @@ foreach ($rankedSkills as $row) {
                     <form method="post" class="panel">
                         <div class="panel-heading">
                             <h2>Your Profile</h2>
-                            <p>Paste your portfolio text or edit skills below — pre-filled from your profile.</p>
+                            <p>Enter your own details or paste a job description to score it.</p>
                         </div>
 
                         <div class="field-row">
                             <label>
                                 Target role
-                                <input name="target_role" value="<?= htmlspecialchars($targetRole) ?>" placeholder="PHP Developer">
+                                <input name="target_role" value="<?= htmlspecialchars($targetRole) ?>" placeholder="Frontend Developer, Python Developer">
                             </label>
                             <label>
                                 Location
