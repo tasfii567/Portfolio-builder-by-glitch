@@ -811,7 +811,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Full Name *</label>
+                                    <label class="form-label">Full Name <span class="text-danger">*</label>
                                     <input type="text" name="name" class="form-control" required
                                         value="<?= htmlspecialchars($user['name']) ?>">
                                 </div>
@@ -834,7 +834,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
                                         value="<?= htmlspecialchars($profile['location'] ?? '') ?>">
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Email *</label>
+                                    <label class="form-label">Email <span class="text-danger">*</label>
                                     <input type="email" name="email" class="form-control" required
                                         value="<?= htmlspecialchars($user['email']) ?>">
                                 </div>

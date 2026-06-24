@@ -2,28 +2,20 @@
 include 'admin_auth.php';
 include 'config.php';
 
-function getCount($con, $sql) {
-    $result = mysqli_query($con, $sql);
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-        return $row['total'];
-    }
-    return 0;
-}
+$hasUserCreated = admin_has_column($pdo, 'users', 'created_at');
 
-$total_users        = getCount($con, "SELECT COUNT(id) AS total FROM users");
-$new_users          = getCount($con, "SELECT COUNT(id) AS total FROM users WHERE DATE(created_at) = CURDATE()");
-$active_users       = getCount($con, "SELECT COUNT(id) AS total FROM users WHERE status = 'active'");
-$inactive_users     = getCount($con, "SELECT COUNT(id) AS total FROM users WHERE status = 'inactive'");
-$total_portfolios   = getCount($con, "SELECT COUNT(id) AS total FROM portfolios");
-$draft_portfolios   = getCount($con, "SELECT COUNT(id) AS total FROM portfolios WHERE status = 'draft'");
-$published_portfolios = getCount($con, "SELECT COUNT(id) AS total FROM portfolios WHERE status = 'published'");
-$total_templates    = getCount($con, "SELECT COUNT(id) AS total FROM templates");
-$total_categories   = getCount($con, "SELECT COUNT(id) AS total FROM categories");
-$total_messages     = getCount($con, "SELECT COUNT(id) AS total FROM contact_messages");
+$total_users          = admin_count($pdo, 'users');
+$total_portfolios     = admin_count($pdo, 'profiles');
+$total_templates      = 8;
+$total_messages       = admin_count($pdo, 'contact_messages');
 
-$latest_users = mysqli_query($con, "SELECT id, name, email, status, created_at FROM users ORDER BY id DESC LIMIT 5");
-$latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_at FROM contact_messages ORDER BY id DESC LIMIT 5");
+$latestUserSelect = 'id, name, email'
+    . ($hasUserCreated ? ', created_at' : '');
+$latestUserOrder = $hasUserCreated ? 'created_at DESC, id DESC' : 'id DESC';
+$latest_users = admin_fetch_all($pdo, "SELECT $latestUserSelect FROM users ORDER BY $latestUserOrder LIMIT 5");
+$latest_messages = admin_table_exists($pdo, 'contact_messages')
+    ? admin_fetch_all($pdo, "SELECT id, name, email, subject, created_at FROM contact_messages ORDER BY id DESC LIMIT 5")
+    : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -325,28 +317,6 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--surface-2); }
 
-    .status-active {
-      display: inline-block;
-      padding: 2px 10px;
-      background: #e8efe0;
-      color: #4f6b43;
-      border: 1px solid #cfe0b6;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .status-inactive {
-      display: inline-block;
-      padding: 2px 10px;
-      background: var(--danger-bg);
-      color: var(--danger);
-      border: 1px solid var(--danger-line);
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
     /* ── Mobile ── */
     @media (max-width: 860px) {
       .app { grid-template-columns: 1fr; }
@@ -380,7 +350,7 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
       Portfolio<span class="brand-g">Builder</span>&nbsp;Admin
     </div>
     <div class="header-logout">
-      <a href="admin_logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="../nahin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
   </header>
 
@@ -413,10 +383,6 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
       <a href="templates.php">Templates</a>
     </div>
     <div class="sidebar-item">
-      <i class="fas fa-list"></i>
-      <a href="categories.php">Categories</a>
-    </div>
-    <div class="sidebar-item">
       <i class="fas fa-envelope"></i>
       <a href="contact_messages.php">Contact Messages</a>
     </div>
@@ -424,7 +390,7 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
     <div class="sidebar-logout-item">
       <div class="sidebar-item">
         <i class="fas fa-sign-out-alt"></i>
-        <a href="admin_logout.php">Logout</a>
+        <a href="../nahin/logout.php">Logout</a>
       </div>
     </div>
   </aside>
@@ -442,43 +408,13 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
       </div>
 
       <div class="count-box">
-        <i class="fas fa-user-plus"></i>
-        <div><h3>New Users Today</h3><p><?php echo $new_users; ?></p></div>
-      </div>
-
-      <div class="count-box">
-        <i class="fas fa-user-check"></i>
-        <div><h3>Active Users</h3><p><?php echo $active_users; ?></p></div>
-      </div>
-
-      <div class="count-box">
-        <i class="fas fa-user-times"></i>
-        <div><h3>Inactive Users</h3><p><?php echo $inactive_users; ?></p></div>
-      </div>
-
-      <div class="count-box">
         <i class="fas fa-briefcase"></i>
         <div><h3>Total Portfolios</h3><p><?php echo $total_portfolios; ?></p></div>
       </div>
 
       <div class="count-box">
-        <i class="fas fa-file-alt"></i>
-        <div><h3>Draft Portfolios</h3><p><?php echo $draft_portfolios; ?></p></div>
-      </div>
-
-      <div class="count-box">
-        <i class="fas fa-globe"></i>
-        <div><h3>Published Portfolios</h3><p><?php echo $published_portfolios; ?></p></div>
-      </div>
-
-      <div class="count-box">
         <i class="fas fa-paint-brush"></i>
         <div><h3>Total Templates</h3><p><?php echo $total_templates; ?></p></div>
-      </div>
-
-      <div class="count-box">
-        <i class="fas fa-list"></i>
-        <div><h3>Total Categories</h3><p><?php echo $total_categories; ?></p></div>
       </div>
 
       <div class="count-box">
@@ -495,23 +431,16 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
         <h3>Latest Users</h3>
         <div class="table-responsive">
           <table>
-            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+            <tr><th>Name</th><th>Email</th></tr>
             <?php
-            if ($latest_users && mysqli_num_rows($latest_users) > 0) {
-                while ($u = mysqli_fetch_assoc($latest_users)) { ?>
+            if (!empty($latest_users)) {
+                foreach ($latest_users as $u) { ?>
                   <tr>
                     <td><?php echo htmlspecialchars($u['name']); ?></td>
                     <td><?php echo htmlspecialchars($u['email']); ?></td>
-                    <td>
-                      <?php if ($u['status'] == 'active'): ?>
-                        <span class="status-active">Active</span>
-                      <?php else: ?>
-                        <span class="status-inactive">Inactive</span>
-                      <?php endif; ?>
-                    </td>
                   </tr>
             <?php }
-            } else { echo "<tr><td colspan='3'>No users found</td></tr>"; } ?>
+            } else { echo "<tr><td colspan='2'>No users found</td></tr>"; } ?>
           </table>
         </div>
       </div>
@@ -522,8 +451,8 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
           <table>
             <tr><th>Name</th><th>Email</th><th>Subject</th></tr>
             <?php
-            if ($latest_messages && mysqli_num_rows($latest_messages) > 0) {
-                while ($msg = mysqli_fetch_assoc($latest_messages)) { ?>
+            if (!empty($latest_messages)) {
+                foreach ($latest_messages as $msg) { ?>
                   <tr>
                     <td><?php echo htmlspecialchars($msg['name']); ?></td>
                     <td><?php echo htmlspecialchars($msg['email']); ?></td>
@@ -540,6 +469,5 @@ $latest_messages = mysqli_query($con, "SELECT id, name, email, subject, created_
 
 </div>
 
-<?php mysqli_close($con); ?>
 </body>
 </html>

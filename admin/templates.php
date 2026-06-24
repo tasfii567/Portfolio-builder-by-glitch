@@ -2,14 +2,91 @@
 include 'admin_auth.php';
 include 'config.php';
 
-$templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
+$errors = [];
+
+function clean_template_file(string $value): string
+{
+  $value = trim($value);
+  return preg_match('/^[A-Za-z0-9._-]+$/', $value) ? $value : '';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+  if ($action === 'add') {
+    $name = trim($_POST['name'] ?? '');
+    $htmlFile = clean_template_file($_POST['html_file'] ?? '');
+    $rendererFile = clean_template_file($_POST['renderer_file'] ?? '');
+    $status = ($_POST['status'] ?? 'active') === 'inactive' ? 'inactive' : 'active';
+
+    if ($name === '') {
+      $errors[] = 'Template name is required.';
+    }
+    if ($htmlFile === '' || !str_ends_with(strtolower($htmlFile), '.html')) {
+      $errors[] = 'HTML file must be a valid .html filename.';
+    }
+    if ($rendererFile === '' || !str_ends_with(strtolower($rendererFile), '.php')) {
+      $errors[] = 'Renderer file must be a valid .php filename.';
+    }
+
+    if ($htmlFile !== '' && !is_file(__DIR__ . '/../nahin/' . $htmlFile)) {
+      $errors[] = 'HTML file was not found in the nahin folder.';
+    }
+    if ($rendererFile !== '' && !is_file(__DIR__ . '/../nahin/templates/' . $rendererFile)) {
+      $errors[] = 'Renderer file was not found in the nahin/templates folder.';
+    }
+
+    if ($htmlFile !== '') {
+      $stmt = $pdo->prepare("SELECT COUNT(*) FROM templates WHERE html_file = ?");
+      $stmt->execute([$htmlFile]);
+      if ((int) $stmt->fetchColumn() > 0) {
+        $errors[] = 'A template using this HTML file already exists.';
+      }
+    }
+
+    if (empty($errors)) {
+      try {
+        $stmt = $pdo->prepare("
+          INSERT INTO templates (name, html_file, renderer_file, status)
+          VALUES (?, ?, ?, ?)
+        ");
+        $stmt->execute([
+          $name,
+          $htmlFile,
+          $rendererFile,
+          $status,
+        ]);
+        header('Location: templates.php?msg=added');
+        exit;
+      } catch (PDOException $e) {
+        if ($e->getCode() === '23000') {
+          $errors[] = 'A template with this HTML file already exists.';
+        } else {
+          throw $e;
+        }
+      }
+    }
+  }
+
+  if ($action === 'delete') {
+    $id = (int) ($_POST['id'] ?? 0);
+    if ($id > 0) {
+      $stmt = $pdo->prepare("DELETE FROM templates WHERE id = ?");
+      $stmt->execute([$id]);
+      header('Location: templates.php?msg=deleted');
+      exit;
+    }
+  }
+}
+
+$templates = admin_fetch_all($pdo, "SELECT * FROM templates ORDER BY id ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Templates — Admin Panel</title>
+  <title>Templates - Admin Panel</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -228,26 +305,63 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
 
     .sl-cell { color: var(--muted); font-size: 12px; font-weight: 600; }
 
-    .status-active {
+    /* Type badge — neutral blue-grey tones to distinguish from status badges */
+    .type-pill {
       display: inline-block; padding: 2px 10px;
-      background: #e8efe0; color: #4f6b43;
-      border: 1px solid #cfe0b6;
+      background: #eef0f7; color: #4a5070;
+      border: 1px solid #d4d8ee;
       border-radius: 20px; font-size: 11px; font-weight: 600;
+      text-transform: capitalize;
     }
 
-    .status-inactive {
-      display: inline-block; padding: 2px 10px;
-      background: var(--danger-bg); color: var(--danger);
-      border: 1px solid var(--danger-line);
-      border-radius: 20px; font-size: 11px; font-weight: 600;
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
 
-    .status-other {
-      display: inline-block; padding: 2px 10px;
-      background: var(--surface-2); color: var(--muted);
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .form-group input,
+    .form-group select {
       border: 1px solid var(--line);
-      border-radius: 20px; font-size: 11px; font-weight: 600;
+      border-radius: 9px;
+      padding: 10px 11px;
+      font: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--surface);
     }
+
+    .btn-primary,
+    .btn-danger {
+      border: none;
+      border-radius: 9px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-line); }
+    .status-active { background: #e8efe0; color: #4f6b43; border-color: #cfe0b6; }
+    .status-inactive { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-line); }
+
+    .toast {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .toast.success { border-color: #cfe0b6; color: #4f6b43; background: #e8efe0; }
+    .toast.error { border-color: var(--danger-line); color: var(--danger); background: var(--danger-bg); }
 
     .empty-row td {
       text-align: center; color: var(--muted);
@@ -265,6 +379,7 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
       .sidebar.open { left: 0; }
       .menu-btn { display: grid; }
       .content { padding: 20px; }
+      .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -281,7 +396,7 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
       Portfolio<span class="brand-g">Builder</span>&nbsp;Admin
     </div>
     <div class="header-logout">
-      <a href="admin_logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="../nahin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
   </header>
 
@@ -314,10 +429,6 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
       <a href="templates.php">Templates</a>
     </div>
     <div class="sidebar-item">
-      <i class="fas fa-list"></i>
-      <a href="categories.php">Categories</a>
-    </div>
-    <div class="sidebar-item">
       <i class="fas fa-envelope"></i>
       <a href="contact_messages.php">Contact Messages</a>
     </div>
@@ -325,7 +436,7 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
     <div class="sidebar-logout-item">
       <div class="sidebar-item">
         <i class="fas fa-sign-out-alt"></i>
-        <a href="admin_logout.php">Logout</a>
+        <a href="../nahin/logout.php">Logout</a>
       </div>
     </div>
   </aside>
@@ -336,18 +447,60 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
     <div class="topbar">
       <div>
         <h2>Templates</h2>
-        <p>View and manage all available templates.</p>
+        <p>View and manage all portfolio templates.</p>
       </div>
       <a class="back-btn" href="admin_dashboard.php">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>
 
+    <?php if (isset($_GET['msg']) && $_GET['msg'] === 'added'): ?>
+      <div class="toast success"><i class="fas fa-check-circle"></i> Template added successfully.</div>
+    <?php elseif (isset($_GET['msg']) && $_GET['msg'] === 'deleted'): ?>
+      <div class="toast success"><i class="fas fa-check-circle"></i> Template deleted successfully.</div>
+    <?php endif; ?>
+
+    <?php foreach ($errors as $error): ?>
+      <div class="toast error"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?></div>
+    <?php endforeach; ?>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head">
+        <h3>Add Template</h3>
+      </div>
+
+      <form method="POST" class="form-grid">
+        <input type="hidden" name="action" value="add">
+        <div class="form-group">
+          <label>Template Name</label>
+          <input type="text" name="name" placeholder="Creative Portfolio" required>
+        </div>
+        <div class="form-group">
+          <label>HTML File</label>
+          <input type="text" name="html_file" placeholder="temp7.html" required>
+        </div>
+        <div class="form-group">
+          <label>Renderer File</label>
+          <input type="text" name="renderer_file" placeholder="render-temp7.php" required>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Add Template</button>
+        </div>
+      </form>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <h3>All Templates</h3>
         <span class="count-pill">
-          <?php echo mysqli_num_rows($templates); ?> total
+          <?php echo count($templates); ?> total
         </span>
       </div>
 
@@ -357,36 +510,47 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
             <tr>
               <th>SL</th>
               <th>Template Name</th>
+              <th>HTML File</th>
+              <th>Renderer File</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <?php
-            if ($templates && mysqli_num_rows($templates) > 0):
+            if (!empty($templates)):
               $sl = 1;
-              while ($template = mysqli_fetch_assoc($templates)):
-                $status = strtolower($template['status'] ?? '');
+              foreach ($templates as $template):
+                $status = ($template['status'] ?? 'inactive') === 'active' ? 'active' : 'inactive';
+                $template['type'] = $template['html_file'] ?? '';
             ?>
               <tr>
                 <td class="sl-cell"><?php echo $sl++; ?></td>
                 <td><?php echo htmlspecialchars($template['name'] ?? '—'); ?></td>
                 <td>
-                  <?php if ($status === 'active'): ?>
-                    <span class="status-active">Active</span>
-                  <?php elseif ($status === 'inactive'): ?>
-                    <span class="status-inactive">Inactive</span>
+                  <?php if (!empty($template['type'])): ?>
+                    <span class="type-pill"><?php echo htmlspecialchars($template['type']); ?></span>
                   <?php else: ?>
-                    <span class="status-other"><?php echo htmlspecialchars($template['status'] ?? '—'); ?></span>
+                    <span style="color:var(--muted-2)">—</span>
                   <?php endif; ?>
+                </td>
+                <td><?php echo htmlspecialchars($template['renderer_file'] ?? '-'); ?></td>
+                <td><span class="type-pill status-<?php echo $status; ?>"><?php echo htmlspecialchars($status); ?></span></td>
+                <td>
+                  <form method="POST" onsubmit="return confirm('Delete this template?');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" value="<?php echo (int) ($template['id'] ?? 0); ?>">
+                    <button type="submit" class="btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                  </form>
                 </td>
               </tr>
             <?php
-              endwhile;
+              endforeach;
             else:
             ?>
               <tr class="empty-row">
-                <td colspan="3">
-                  <i class="fas fa-paint-brush" style="font-size:24px;color:var(--muted-2);display:block;margin-bottom:8px"></i>
+                <td colspan="6">
+                  <i class="fas fa-list" style="font-size:24px;color:var(--muted-2);display:block;margin-bottom:8px"></i>
                   No templates found
                 </td>
               </tr>
@@ -399,6 +563,5 @@ $templates = mysqli_query($con, "SELECT * FROM templates ORDER BY id DESC");
   </main>
 </div>
 
-<?php mysqli_close($con); ?>
 </body>
 </html>

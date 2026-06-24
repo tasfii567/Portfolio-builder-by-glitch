@@ -2,7 +2,15 @@
 include 'admin_auth.php';
 include 'config.php';
 
-$portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
+$portfolios = admin_fetch_all($pdo, "
+    SELECT
+      p.id,
+      COALESCE(NULLIF(p.title, ''), CONCAT(u.name, ' Portfolio')) AS title,
+      p.created_at
+    FROM profiles p
+    JOIN users u ON u.id = p.user_id
+    ORDER BY p.id DESC
+  ");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -230,27 +238,6 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
 
     .date-cell { color: var(--muted); font-size: 12px; }
 
-    .status-published {
-      display: inline-block; padding: 2px 10px;
-      background: #e8efe0; color: #4f6b43;
-      border: 1px solid #cfe0b6;
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-
-    .status-draft {
-      display: inline-block; padding: 2px 10px;
-      background: #fef9ec; color: #92720a;
-      border: 1px solid #f0dfa0;
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-
-    .status-other {
-      display: inline-block; padding: 2px 10px;
-      background: var(--surface-2); color: var(--muted);
-      border: 1px solid var(--line);
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-
     .empty-row td {
       text-align: center; color: var(--muted);
       padding: 32px; font-size: 13px;
@@ -283,7 +270,7 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
       Portfolio<span class="brand-g">Builder</span>&nbsp;Admin
     </div>
     <div class="header-logout">
-      <a href="admin_logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="../nahin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
   </header>
 
@@ -316,10 +303,6 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
       <a href="templates.php">Templates</a>
     </div>
     <div class="sidebar-item">
-      <i class="fas fa-list"></i>
-      <a href="categories.php">Categories</a>
-    </div>
-    <div class="sidebar-item">
       <i class="fas fa-envelope"></i>
       <a href="contact_messages.php">Contact Messages</a>
     </div>
@@ -327,7 +310,7 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
     <div class="sidebar-logout-item">
       <div class="sidebar-item">
         <i class="fas fa-sign-out-alt"></i>
-        <a href="admin_logout.php">Logout</a>
+        <a href="../nahin/logout.php">Logout</a>
       </div>
     </div>
   </aside>
@@ -349,7 +332,7 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
       <div class="card-head">
         <h3>All Portfolios</h3>
         <span class="count-pill">
-          <?php echo mysqli_num_rows($portfolios); ?> total
+          <?php echo count($portfolios); ?> total
         </span>
       </div>
 
@@ -359,39 +342,28 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
             <tr>
               <th>SL</th>
               <th>Title</th>
-              <th>Status</th>
               <th>Created At</th>
             </tr>
           </thead>
           <tbody>
             <?php
-            if ($portfolios && mysqli_num_rows($portfolios) > 0):
+            if (!empty($portfolios)):
               $sl = 1;
-              while ($portfolio = mysqli_fetch_assoc($portfolios)):
-                $status = strtolower($portfolio['status'] ?? '');
+              foreach ($portfolios as $portfolio):
             ?>
               <tr>
                 <td class="sl-cell"><?php echo $sl++; ?></td>
                 <td><?php echo htmlspecialchars($portfolio['title'] ?? '—'); ?></td>
-                <td>
-                  <?php if ($status === 'published'): ?>
-                    <span class="status-published">Published</span>
-                  <?php elseif ($status === 'draft'): ?>
-                    <span class="status-draft">Draft</span>
-                  <?php else: ?>
-                    <span class="status-other"><?php echo htmlspecialchars($portfolio['status'] ?? '—'); ?></span>
-                  <?php endif; ?>
-                </td>
                 <td class="date-cell">
                   <?php echo htmlspecialchars($portfolio['created_at'] ?? '—'); ?>
                 </td>
               </tr>
             <?php
-              endwhile;
+              endforeach;
             else:
             ?>
               <tr class="empty-row">
-                <td colspan="4">
+                <td colspan="3">
                   <i class="fas fa-briefcase" style="font-size:24px;color:var(--muted-2);display:block;margin-bottom:8px"></i>
                   No portfolios found
                 </td>
@@ -405,6 +377,5 @@ $portfolios = mysqli_query($con, "SELECT * FROM portfolios ORDER BY id DESC");
   </main>
 </div>
 
-<?php mysqli_close($con); ?>
 </body>
 </html>
