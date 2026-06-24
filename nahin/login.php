@@ -7,7 +7,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // If already logged in, skip straight to dashboard
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+        header("Location: ../admin/admin_dashboard.php");
+    } else {
+        header("Location: dashboard.php");
+    }
+
     exit;
 }
 
@@ -28,11 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['name']    = $user['name'];
             $_SESSION['email']   = $user['email'];
+            $_SESSION['role']    = $user['role'];
 
-            header("Location: dashboard.php");
+            if ($user['role'] === 'admin') {
+                header("Location: ../admin/admin_dashboard.php");
+            } else {
+                header("Location: dashboard.php");
+            }
+
             exit;
         } else {
             $errors[] = "Invalid email or password.";

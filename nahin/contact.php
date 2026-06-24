@@ -1,4 +1,55 @@
-<?php include 'includes/header.php'; ?>
+<?php
+require 'config/db.php';
+
+$errors = [];
+$success = false;
+$name = '';
+$email = '';
+$subject = '';
+$message = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $subject = trim($_POST['subject'] ?? '');
+    $message = trim($_POST['message'] ?? '');
+
+    if ($name === '') {
+        $errors[] = 'Please enter your name.';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Please enter a valid email address.';
+    }
+
+    if ($subject === '') {
+        $errors[] = 'Please enter a subject.';
+    }
+
+    if ($message === '') {
+        $errors[] = 'Please enter your message.';
+    }
+
+    if (empty($errors)) {
+        try {
+            $stmt = $pdo->prepare(
+                "INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)"
+            );
+            $stmt->execute([$name, $email, $subject, $message]);
+
+            $success = true;
+            $name = '';
+            $email = '';
+            $subject = '';
+            $message = '';
+        } catch (PDOException $e) {
+            $errors[] = 'Message could not be sent. Please try again later.';
+        }
+    }
+}
+
+include 'includes/header.php';
+?>
 
 <section class="contact-wrap">
     <div class="contact-grid">
@@ -44,7 +95,21 @@
 
                 <p class="form-section-label">Send a message</p>
 
-                <form action="contact_handler.php" method="POST" novalidate>
+                <?php if ($success): ?>
+                    <div class="contact-alert contact-success">Message sent successfully.</div>
+                <?php endif; ?>
+
+                <?php if (!empty($errors)): ?>
+                    <div class="contact-alert contact-error">
+                        <ul>
+                            <?php foreach ($errors as $error): ?>
+                                <li><?= htmlspecialchars($error) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <form action="contact.php" method="POST" novalidate>
 
                     <div class="cf-row">
                         <div class="cf-group">
@@ -54,6 +119,7 @@
                                 name="name"
                                 class="cf-input"
                                 placeholder="Alex Johnson"
+                                value="<?= htmlspecialchars($name) ?>"
                                 required>
                         </div>
 
@@ -64,6 +130,7 @@
                                 name="email"
                                 class="cf-input"
                                 placeholder="alex@email.com"
+                                value="<?= htmlspecialchars($email) ?>"
                                 required>
                         </div>
                     </div>
@@ -75,6 +142,7 @@
                             name="subject"
                             class="cf-input"
                             placeholder="What's this about?"
+                            value="<?= htmlspecialchars($subject) ?>"
                             required>
                     </div>
 
@@ -85,7 +153,7 @@
                             rows="5"
                             class="cf-input cf-textarea"
                             placeholder="Tell us what's on your mind..."
-                            required></textarea>
+                            required><?= htmlspecialchars($message) ?></textarea>
                     </div>
 
                     <button type="submit" class="cf-btn">
@@ -204,6 +272,31 @@
         text-transform: uppercase;
         letter-spacing: .1em;
         margin-bottom: 28px;
+    }
+
+    .contact-alert {
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .contact-alert ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    .contact-success {
+        background: #e6f4ea;
+        border: 1px solid #b7dfc3;
+        color: #1e6b34;
+    }
+
+    .contact-error {
+        background: #fdecea;
+        border: 1px solid #f5c6cb;
+        color: #842029;
     }
 
     .cf-row {
