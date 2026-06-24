@@ -21,20 +21,20 @@
             <div class="col-6 col-lg-2">
                 <p class="footer-title">Product</p>
                 <ul class="list-unstyled footer-links">
-                    <li><a href="demo.php"><i class="bi bi-grid me-1"></i> Templates</a></li>
+                    <!-- <li><a href="demo.php"><i class="bi bi-grid me-1"></i> Templates</a></li> -->
                     <li><a href="demo.php"><i class="bi bi-eye me-1"></i> Demo</a></li>
-                    <li><a href="#"><i class="bi bi-file-earmark-arrow-down me-1"></i> Resume Export</a></li>
-                    <li><a href="#"><i class="bi bi-share me-1"></i> Publish Portfolio</a></li>
+                    <li><a href="login.php"><i class="bi bi-file-earmark-arrow-down me-1"></i> Resume Export</a></li>
+                    <li><a href="login.php"><i class="bi bi-share me-1"></i> Publish Portfolio</a></li>
                 </ul>
             </div>
             <!-- Company -->
             <div class="col-6 col-lg-2">
                 <p class="footer-title">Company</p>
                 <ul class="list-unstyled footer-links">
-                    <li><a href="about.php"><i class="bi bi-info-circle me-1"></i> About Me</a></li>
+                    <li><a href="index.php"><i class="bi bi-info-circle me-1"></i> About Me</a></li>
                     <li><a href="contact.php"><i class="bi bi-envelope me-1"></i> Contact</a></li>
-                    <li><a href="#"><i class="bi bi-shield me-1"></i> Privacy Policy</a></li>
-                    <li><a href="#"><i class="bi bi-file-text me-1"></i> Terms of Use</a></li>
+                    <!-- <li><a href="#"><i class="bi bi-shield me-1"></i> Privacy Policy</a></li>
+                    <li><a href="#"><i class="bi bi-file-text me-1"></i> Terms of Use</a></li> -->
                 </ul>
             </div>
             <!-- Account -->
@@ -43,8 +43,8 @@
                 <ul class="list-unstyled footer-links">
                     <li><a href="login.php"><i class="bi bi-box-arrow-in-right me-1"></i> Login</a></li>
                     <li><a href="reg.php"><i class="bi bi-person-plus me-1"></i> Register</a></li>
-                    <li><a href="dashboard.php"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a></li>
-                    <li><a href="#"><i class="bi bi-question-circle me-1"></i> Help</a></li>
+                    <!-- <li><a href="dashboard.php"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a></li> -->
+                    <li><a href="contact.php"><i class="bi bi-question-circle me-1"></i> Help</a></li>
                 </ul>
             </div>
         </div>

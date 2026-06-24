@@ -26,12 +26,12 @@ if (!$user) {
 }
 
 $userName = htmlspecialchars($user['name']);
+$userEmail = htmlspecialchars($user['email']);
 
 $stmt = $pdo->prepare("SELECT title, avatar, location FROM profiles WHERE user_id = ?");
 $stmt->execute([$userId]);
 $profile = $stmt->fetch();
 
-$userRole   = htmlspecialchars($profile['title'] ?? 'Member');
 $userAvatar = $profile['avatar'] ?? null;
 $initials   = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
@@ -52,7 +52,7 @@ foreach ($dbProjects as $p) {
 $autoPortfolio = trim($skillsText . "\n\n" . $projectsText);
 $defaultPortfolio = $autoPortfolio !== ''
     ? $autoPortfolio
-    : "Paste your portfolio, resume, LinkedIn About section, GitHub profile, or project descriptions here.\n\nExample:\nPHP developer with Laravel, MySQL, REST API, JavaScript, React, Docker, AWS, testing, and AI automation experience.";
+    : '';
 
 // ── Job match logic (unchanged from original) ────────────────────────
 
@@ -85,6 +85,7 @@ $targetRole  = trim((string)($_POST['target_role']  ?? ($_GET['target_role'] ?? 
 $location    = trim((string)($_POST['location']     ?? ($_SESSION['location']     ?? ($profile['location'] ?? ''))));
 $experience  = trim((string)($_POST['experience']   ?? ($_SESSION['experience']   ?? 'mid')));
 $jobText     = trim((string)($_POST['job_text']     ?? ''));
+$portfolioForMatching = strip_example_boilerplate($portfolio);
 
 if ($targetRole === '') {
     $targetRole = trim((string)($_SESSION['target_role'] ?? ($profile['title'] ?? '')));
@@ -103,6 +104,24 @@ function normalize_text(string $text): string
     $text = str_replace(['+', '#'], [' plus ', ' sharp '], $text);
     $text = preg_replace('/[^\p{L}\p{N}\/\.\s-]+/u', ' ', $text) ?? $text;
     return preg_replace('/\s+/', ' ', $text) ?? $text;
+}
+
+function strip_example_boilerplate(string $text): string
+{
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+
+    if (preg_match('/\n\s*example\s*:/i', $text, $match, PREG_OFFSET_CAPTURE)) {
+        $text = trim(substr($text, 0, $match[0][1]));
+    }
+
+    if (preg_match('/^example\s*:/i', $text)) {
+        $text = trim((string) preg_replace('/^example\s*:\s*/i', '', $text));
+    }
+
+    return $text;
 }
 
 function flatten_catalog(array $catalog): array
@@ -182,7 +201,7 @@ function score_job_text(array $portfolioSkills, string $jobText, array $catalog,
     return ['score' => $score, 'matched' => $matched, 'missing' => $missing];
 }
 
-$portfolioSkills = extract_skills($portfolio, $skillCatalog, $synonyms);
+$portfolioSkills = extract_skills($portfolioForMatching, $skillCatalog, $synonyms);
 $priorityWords   = preg_split('/\s+/', normalize_text($targetRole)) ?: [];
 $rankedSkills    = rank_skills($portfolioSkills, $priorityWords);
 $searches        = build_searches($targetRole, $location, $experience, $rankedSkills);
@@ -199,25 +218,25 @@ foreach ($rankedSkills as $row) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Match — PortfolioBuilder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f4f1ea;
+            --bg: #f7f3ea;
             --surface: #fff;
-            --surface-2: #efeade;
-            --line: #e4ddcc;
-            --text: #1d211a;
-            --muted: #797f6f;
-            --primary: #3a4a23;
-            --primary-soft: #5c7038;
-            --accent: #7d9e58;
+            --surface-2: #ede7d6;
+            --line: #e8e1d3;
+            --text: #2b2926;
+            --muted: #8a8270;
+            --primary: #36402c;
+            --primary-soft: #46532f;
+            --accent: #6b8c5a;
             --good: #5c8a3a;
             --danger: #a8442f;
             --danger-bg: #f3e3df;
             --danger-line: #ecc9c1;
             --radius: 14px;
-            --shadow: 0 8px 24px rgba(40, 45, 30, .07);
-            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+            --shadow: 0 8px 24px rgba(43, 41, 38, .07);
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
         }
 
         *,
@@ -870,7 +889,7 @@ foreach ($rankedSkills as $row) {
                 <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
                     <div class="skills-badge"><span><?= count($portfolioSkills) ?></span> skills found</div>
                     <div class="profile">
-                        <div class="who"><b><?= $userName ?></b><small><?= $userRole ?></small></div>
+                        <div class="who"><b><?= $userName ?></b><small><?= $userEmail ?></small></div>
                         <div class="avatar">
                             <?php if ($userAvatar): ?>
                                 <img src="../nahin/<?= htmlspecialchars($userAvatar) ?>" alt="<?= $userName ?>"
@@ -916,7 +935,7 @@ foreach ($rankedSkills as $row) {
 
                         <label style="margin-bottom:14px">
                             Portfolio / resume text
-                            <textarea name="portfolio" rows="10"><?= htmlspecialchars($portfolio) ?></textarea>
+                            <textarea name="portfolio" rows="10" placeholder="Paste your portfolio, resume, LinkedIn About section, GitHub profile, or project descriptions here."><?= htmlspecialchars($portfolio) ?></textarea>
                         </label>
 
                         <label>

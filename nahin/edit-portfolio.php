@@ -474,7 +474,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
             border-radius: 10px;
             color: var(--muted);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: .18s;
         }
 
@@ -750,7 +750,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
             </div>
             <nav class="nav">
                 <div class="nav-label">Menu</div>
-                <a href="Dashboard.php"><span class="ic">🏠</span> Dashboard</a>
+                <a href="dashboard.php"><span class="ic">🏠</span> Dashboard</a>
                 <a href="edit-portfolio.php" class="active"><span class="ic">👤</span> Edit Profile</a>
                 <a href="choose-template.php"><span class="ic">🎨</span> Choose Template</a>
                 <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
@@ -758,7 +758,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
                 <a href="../job-match-ai/job-match.php"><span class="ic">📊</span> Job Match</a>
             </nav>
             <div class="logout">
-                <a href="Logout.php"><span>⏻</span> Logout</a>
+                <a href="logout.php"><span>⏻</span> Logout</a>
             </div>
         </aside>
 

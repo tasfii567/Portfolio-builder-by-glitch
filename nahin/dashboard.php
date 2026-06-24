@@ -30,13 +30,13 @@ if (!$user) {
 }
 
 $userName = htmlspecialchars($user['name']);
+$userEmail = htmlspecialchars($user['email']);
 
 // Pull profile title + avatar from profiles table
-$stmt = $pdo->prepare("SELECT title, avatar, bio, location FROM profiles WHERE user_id = ?");
+$stmt = $pdo->prepare("SELECT title, avatar, bio, location, public_slug, selected_template_id, is_published FROM profiles WHERE user_id = ?");
 $stmt->execute([$userId]);
-$profile = $stmt->fetch();
+$profile = $stmt->fetch() ?: [];
 
-$userRole   = htmlspecialchars($profile['title'] ?? 'Member');
 $userAvatar = $profile['avatar'] ?? null;
 $initials   = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
@@ -74,6 +74,8 @@ $userSkills = array_values(array_filter(array_map(
 
 $hasAvatar    = !empty($userAvatar);
 $profileFilled = !empty($profile['bio']) && !empty($profile['location']);
+$isPublished  = !empty($profile['is_published']);
+$hasTemplate   = !empty($profile['selected_template_id']);
 
 function build_job_matches(array $skills): array
 {
@@ -136,22 +138,22 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — PortfolioBuilder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f4f1ea;
+            --bg: #f7f3ea;
             --surface: #fff;
-            --surface-2: #efeade;
-            --line: #e4ddcc;
-            --text: #1d211a;
-            --muted: #797f6f;
-            --primary: #3a4a23;
-            --primary-soft: #5c7038;
-            --accent: #7d9e58;
+            --surface-2: #ede7d6;
+            --line: #e8e1d3;
+            --text: #2b2926;
+            --muted: #8a8270;
+            --primary: #36402c;
+            --primary-soft: #46532f;
+            --accent: #6b8c5a;
             --good: #5c8a3a;
             --radius: 14px;
-            --shadow: 0 8px 24px rgba(40, 45, 30, .07);
-            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+            --shadow: 0 8px 24px rgba(43, 41, 38, .07);
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
         }
 
         * {
@@ -619,6 +621,33 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             box-shadow: var(--shadow);
         }
 
+        .tpl-note {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        .panel .mini-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            transition: .18s;
+        }
+
+        .panel .mini-btn:hover {
+            background: var(--primary-soft);
+            transform: translateY(-1px);
+        }
+
         /* ── Job match bars ── */
         .match {
             margin-bottom: 18px
@@ -818,7 +847,7 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
             </div>
             <nav class="nav">
                 <div class="nav-label">Menu</div>
-                <a href="Dashboard.php" class="active"><span class="ic">🏠</span> Dashboard</a>
+                <a href="dashboard.php" class="active"><span class="ic">🏠</span> Dashboard</a>
                 <a href="edit-portfolio.php"><span class="ic">👤</span> Edit Profile</a>
                 <a href="choose-template.php"><span class="ic">🎨</span> Choose Template</a>
                 <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
@@ -826,7 +855,7 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 <a href="../job-match-ai/job-match.php"><span class="ic">📊</span> Job Match</a>
             </nav>
             <div class="logout">
-                <a href="Logout.php"><span>⏻</span> Logout</a>
+                <a href="logout.php"><span>⏻</span> Logout</a>
             </div>
         </aside>
 
@@ -843,7 +872,7 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                     </div>
                 </div>
                 <div class="profile">
-                    <div class="who"><b><?= $userName ?></b><small><?= $userRole ?></small></div>
+                    <div class="who"><b><?= $userName ?></b><small><?= $userEmail ?></small></div>
                     <div class="avatar">
                         <?php if ($userAvatar): ?>
                             <img src="<?= htmlspecialchars($userAvatar) ?>" alt="<?= $userName ?>">
@@ -859,6 +888,21 @@ $completePct = $totalTasks ? (int) round($doneCount / $totalTasks * 100) : 0;
                 <h3>Welcome to PortfolioBuilder</h3>
                 <p>Create a portfolio and get an amazing experience. Showcase your work, build a professional resume, and discover which jobs match your skills — all in one place.</p>
                 <a href="edit-portfolio.php" class="cta">＋ Start Building Your Portfolio</a>
+            </section>
+
+            <section class="panel" style="margin-bottom:24px;">
+                <div class="tpl-note">
+                    <div>
+                        Portfolio status:
+                        <b><?= $hasTemplate ? ($isPublished ? 'Published' : 'Unpublished') : 'Template not selected' ?></b>
+                    </div>
+                    <a class="mini-btn" href="create-portfolio.php">Open Portfolio Hub</a>
+                </div>
+                <?php if (!empty($profile['public_slug']) && $hasTemplate && $isPublished): ?>
+                    <div style="margin-top:12px;font-size:13px;color:var(--muted);word-break:break-all;">
+                        Public link: <?= htmlspecialchars((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/NAHIN_FINAL/Portfolio-builder-by-glitch/nahin/view-portfolio.php?u=' . rawurlencode((string) $profile['public_slug'])) ?>
+                    </div>
+                <?php endif; ?>
             </section>
 
             <!-- Stats -->

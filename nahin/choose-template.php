@@ -23,7 +23,7 @@ if (!$user) {
 $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
 $stmt = $pdo->query("
-    SELECT name, html_file
+    SELECT id, name, html_file
     FROM templates
     WHERE status = 'active'
     ORDER BY id ASC
@@ -31,6 +31,7 @@ $stmt = $pdo->query("
 $templateRows = $stmt->fetchAll();
 $templates = array_map(function ($template, $index) {
     return [
+        'id' => (int) $template['id'],
         'img' => str_pad((string) (($index % 2) + 1), 2, '0', STR_PAD_LEFT),
         'title' => $template['name'],
         'desc' => 'Portfolio template',
@@ -71,7 +72,7 @@ $templates = array_map(function ($template, $index) {
         }
 
         body {
-            font-family: 'Inter', sans-serif !important;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
             background: var(--bg);
             color: var(--text-dark);
             min-height: 100vh;
@@ -163,7 +164,7 @@ $templates = array_map(function ($template, $index) {
             border-radius: 10px;
             color: var(--text-mid);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: .18s;
         }
 
@@ -217,7 +218,7 @@ $templates = array_map(function ($template, $index) {
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            margin-bottom: 10px;
+            margin-bottom: 26px;
             flex-wrap: wrap;
         }
 
@@ -740,7 +741,7 @@ $templates = array_map(function ($template, $index) {
                 <a href="../job-match-ai/job-match.php"><span class="ic">📊</span> Job Match</a>
             </nav>
             <div class="logout">
-                <a href="Logout.php"><span>⏻</span> Logout</a>
+                <a href="logout.php"><span>⏻</span> Logout</a>
             </div>
         </aside>
 
@@ -782,7 +783,7 @@ $templates = array_map(function ($template, $index) {
                                     <div class="demo-iframe-block"></div>
                                 </div>
                                 <div class="demo-overlay">
-                                    <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
+                                    <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>', <?= (int) $t['id'] ?>)">
                                         <i class="bi bi-eye"></i> See Template
                                     </button>
                                 </div>
@@ -792,7 +793,7 @@ $templates = array_map(function ($template, $index) {
                             <div class="demo-card-body">
                                 <h3 class="demo-card-title"><?= htmlspecialchars($t['title']) ?></h3>
                                 <p class="demo-card-desc"><?= htmlspecialchars($t['desc']) ?></p>
-                                <button class="demo-use-btn" onclick="useTemplate('<?= htmlspecialchars($t['file']) ?>')">
+                                <button class="demo-use-btn" onclick="useTemplate(<?= (int) $t['id'] ?>)">
                                     Use this template →
                                 </button>
                             </div>
@@ -833,7 +834,7 @@ $templates = array_map(function ($template, $index) {
 
             <div class="tpl-modal-footer">
                 <span class="tpl-footer-note">This is a live preview of the template</span>
-                <button type="button" id="modalUseBtn" class="tpl-use-btn-modal" onclick="useTemplate(currentTemplateFile)">Use this template →</button>
+                <button type="button" id="modalUseBtn" class="tpl-use-btn-modal" onclick="useTemplate(currentTemplateId)">Use this template →</button>
             </div>
 
         </div>
@@ -841,14 +842,16 @@ $templates = array_map(function ($template, $index) {
 
     <!-- Hidden form that actually applies the chosen template to the user's portfolio -->
     <form id="useTemplateForm" method="POST" action="apply-template.php" style="display:none;">
-        <input type="hidden" name="template" id="useTemplateInput" value="">
+        <input type="hidden" name="template_id" id="useTemplateInput" value="">
     </form>
 
     <script>
         let currentTemplateFile = '';
+        let currentTemplateId = '';
 
-        function openPreview(file, title) {
+        function openPreview(file, title, id) {
             currentTemplateFile = file;
+            currentTemplateId = id;
 
             const modal = document.getElementById('templateModal');
             const frame = document.getElementById('templateFrame');
@@ -890,9 +893,9 @@ $templates = array_map(function ($template, $index) {
         });
 
         // Applies the chosen template to the logged-in user's portfolio
-        function useTemplate(file) {
-            if (!file) return;
-            document.getElementById('useTemplateInput').value = file;
+        function useTemplate(id) {
+            if (!id) return;
+            document.getElementById('useTemplateInput').value = id;
             document.getElementById('useTemplateForm').submit();
         }
     </script>

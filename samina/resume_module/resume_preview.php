@@ -126,7 +126,7 @@
       border-radius: 10px;
       color: var(--muted);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       transition: .18s;
     }
 
@@ -604,15 +604,15 @@
       </div>
       <nav class="nav">
         <div class="nav-label">Menu</div>
-        <a href="<?= $base ?>Dashboard.php"><span class="ic">🏠</span> Dashboard</a>
+        <a href="<?= $base ?>dashboard.php"><span class="ic">🏠</span> Dashboard</a>
         <a href="<?= $base ?>edit-portfolio.php"><span class="ic">👤</span> Edit Profile</a>
         <a href="<?= $base ?>choose-template.php"><span class="ic">🎨</span> Choose Template</a>
-        <a href="create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
+        <a href="<?= $base ?>create-portfolio.php"><span class="ic">📁</span> Create Portfolio</a>
         <a href="resume_preview.php" class="active"><span class="ic">📄</span> Create Resume</a>
         <a href="<?= $base ?>../job-match-ai/job-match.php"><span class="ic">📊</span> Job Match</a>
       </nav>
       <div class="logout">
-        <a href="<?= $base ?>Logout.php"><span>⏻</span> Logout</a>
+        <a href="<?= $base ?>logout.php"><span>⏻</span> Logout</a>
       </div>
     </aside>
 

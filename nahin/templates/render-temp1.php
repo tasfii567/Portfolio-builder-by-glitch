@@ -246,7 +246,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                     </svg>
                 </button>
-                <a href="Dashboard.php" class="hidden md:inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-4 py-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                <a href="dashboard.php" class="hidden md:inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-4 py-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
                     🏠 Dashboard
                 </a>
                 <?php if ($contactEmail): ?>
@@ -276,7 +276,7 @@
                 <?= $extraNavMobile ?>
                 <li><a href="#contact" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Contact</a></li>
                 <li class="pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                    <a href="Dashboard.php" @click="mm=false" class="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors font-medium">🏠 Dashboard</a>
+                    <a href="dashboard.php" @click="mm=false" class="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors font-medium">🏠 Dashboard</a>
                 </li>
             </ul>
         </div>
