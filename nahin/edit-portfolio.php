@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 user_id, avatar, title, bio, location, phone,
                 theme, visibility,
                 contact_email, contact_phone, email_notifications
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 avatar = VALUES(avatar),
                 title = VALUES(title),
