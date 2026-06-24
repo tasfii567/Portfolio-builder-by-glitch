@@ -7,7 +7,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // If already logged in, skip straight to dashboard
 if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+        header("Location: ../admin/admin_dashboard.php");
+    } else {
+        header("Location: dashboard.php");
+    }
+
     exit;
 }
 
@@ -28,11 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['name']    = $user['name'];
             $_SESSION['email']   = $user['email'];
+            $_SESSION['role']    = $user['role'];
 
-            header("Location: dashboard.php");
+            if ($user['role'] === 'admin') {
+                header("Location: ../admin/admin_dashboard.php");
+            } else {
+                header("Location: dashboard.php");
+            }
+
             exit;
         } else {
             $errors[] = "Invalid email or password.";
@@ -123,9 +136,12 @@ require 'includes/header.php';
                             <input id="lf-pass"
                                 type="password"
                                 name="password"
-                                class="lf-input"
+                                class="lf-input lf-input-pass"
                                 placeholder="Enter your password"
                                 required>
+                            <button type="button" class="lf-eye" onclick="togglePass('lf-pass', this)" aria-label="Show password">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -400,6 +416,27 @@ require 'includes/header.php';
         box-shadow: 0 0 0 3px rgba(107, 140, 90, .15);
     }
 
+    /* ── Eye toggle (ADDED) ─────────────── */
+    .lf-input-pass { padding-right: 40px; }
+
+    .lf-eye {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 16px;
+        padding: 0;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .lf-eye:hover { color: var(--text-dark); }
+
     /* ── Button ─────────────────────────── */
     .lf-btn {
         width: 100%;
@@ -482,5 +519,19 @@ require 'includes/header.php';
         }
     }
 </style>
+
+<script>
+function togglePass(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type     = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type     = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
 
 <?php require 'includes/footer.php'; ?>

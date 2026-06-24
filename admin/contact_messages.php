@@ -2,7 +2,9 @@
 include 'admin_auth.php';
 include 'config.php';
 
-$messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC");
+$messages = admin_table_exists($pdo, 'contact_messages')
+  ? admin_fetch_all($pdo, "SELECT * FROM contact_messages ORDER BY id DESC")
+  : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -274,7 +276,7 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
       Portfolio<span class="brand-g">Builder</span>&nbsp;Admin
     </div>
     <div class="header-logout">
-      <a href="admin_logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="../nahin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
   </header>
 
@@ -306,10 +308,6 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
       <i class="fas fa-paint-brush"></i>
       <a href="templates.php">Templates</a>
     </div>
-    <div class="sidebar-item">
-      <i class="fas fa-list"></i>
-      <a href="categories.php">Categories</a>
-    </div>
     <div class="sidebar-item active">
       <i class="fas fa-envelope"></i>
       <a href="contact_messages.php">Contact Messages</a>
@@ -318,7 +316,7 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
     <div class="sidebar-logout-item">
       <div class="sidebar-item">
         <i class="fas fa-sign-out-alt"></i>
-        <a href="admin_logout.php">Logout</a>
+        <a href="../nahin/logout.php">Logout</a>
       </div>
     </div>
   </aside>
@@ -340,7 +338,7 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
       <div class="card-head">
         <h3>All Messages</h3>
         <span class="count-pill">
-          <?php echo mysqli_num_rows($messages); ?> total
+          <?php echo count($messages); ?> total
         </span>
       </div>
 
@@ -357,9 +355,9 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
           </thead>
           <tbody>
             <?php
-            if ($messages && mysqli_num_rows($messages) > 0):
+            if (!empty($messages)):
               $sl = 1;
-              while ($msg = mysqli_fetch_assoc($messages)):
+              foreach ($messages as $msg):
             ?>
               <tr>
                 <td class="sl-cell"><?php echo $sl++; ?></td>
@@ -369,7 +367,7 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
                 <td class="message-cell"><?php echo htmlspecialchars($msg['message'] ?? '—'); ?></td>
               </tr>
             <?php
-              endwhile;
+              endforeach;
             else:
             ?>
               <tr class="empty-row">
@@ -387,6 +385,5 @@ $messages = mysqli_query($con, "SELECT * FROM contact_messages ORDER BY id DESC"
   </main>
 </div>
 
-<?php mysqli_close($con); ?>
 </body>
 </html>

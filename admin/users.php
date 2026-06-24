@@ -2,10 +2,43 @@
 include 'admin_auth.php';
 include 'config.php';
 
+function js_arg($value): string
+{
+  return htmlspecialchars(
+    json_encode($value, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE),
+    ENT_QUOTES,
+    'UTF-8'
+  );
+}
+
+$currentUserId = (int) ($_SESSION['user_id'] ?? 0);
+$hasRoleColumn = admin_has_column($pdo, 'users', 'role');
+$adminUserCount = $hasRoleColumn
+  ? (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn()
+  : 0;
+
 // ── Handle Delete ──
 if (isset($_GET['delete'])) {
   $id = intval($_GET['delete']);
-  mysqli_query($con, "DELETE FROM users WHERE id = $id");
+
+  if ($id === $currentUserId) {
+    header("Location: users.php?msg=cannot_delete_self");
+    exit;
+  }
+
+  if ($hasRoleColumn) {
+    $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ? LIMIT 1");
+    $stmt->execute([$id]);
+    $targetRole = $stmt->fetchColumn();
+
+    if ($targetRole === 'admin' && $adminUserCount <= 1) {
+      header("Location: users.php?msg=cannot_delete_last_admin");
+      exit;
+    }
+  }
+
+  $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+  $stmt->execute([$id]);
   header("Location: users.php?msg=deleted");
   exit;
 }
@@ -13,17 +46,21 @@ if (isset($_GET['delete'])) {
 // ── Handle Edit Submit ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_id'])) {
   $id     = intval($_POST['edit_id']);
-  $name   = mysqli_real_escape_string($con, trim($_POST['name']));
-  $email  = mysqli_real_escape_string($con, trim($_POST['email']));
-  $phone  = mysqli_real_escape_string($con, trim($_POST['phone']));
-  $status = $_POST['status'] === 'active' ? 'active' : 'inactive';
+  $name   = trim($_POST['name'] ?? '');
+  $email  = trim($_POST['email'] ?? '');
 
-  mysqli_query($con, "UPDATE users SET name='$name', email='$email', phone='$phone', status='$status' WHERE id=$id");
+  $sets = ['name = ?', 'email = ?'];
+  $params = [$name, $email];
+
+  $params[] = $id;
+  $stmt = $pdo->prepare("UPDATE users SET " . implode(', ', $sets) . " WHERE id = ?");
+  $stmt->execute($params);
   header("Location: users.php?msg=updated");
   exit;
 }
 
-$users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
+$order = admin_has_column($pdo, 'users', 'created_at') ? 'created_at DESC, id DESC' : 'id DESC';
+$users = admin_fetch_all($pdo, "SELECT * FROM users ORDER BY $order");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -263,20 +300,6 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
 
     .sl-cell { color: var(--muted); font-size: 12px; font-weight: 600; }
 
-    .status-active {
-      display: inline-block; padding: 2px 10px;
-      background: #e8efe0; color: #4f6b43;
-      border: 1px solid #cfe0b6;
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-
-    .status-inactive {
-      display: inline-block; padding: 2px 10px;
-      background: var(--danger-bg); color: var(--danger);
-      border: 1px solid var(--danger-line);
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-
     /* ── Action Buttons ── */
     .actions { display: flex; gap: 7px; }
 
@@ -298,6 +321,8 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
       border: 1px solid var(--danger-line);
     }
     .btn-delete:hover { background: #eed6d0; }
+    .btn-delete:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-delete:disabled:hover { background: var(--danger-bg); }
 
     .empty-row td {
       text-align: center; color: var(--muted);
@@ -458,7 +483,7 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
       Portfolio<span class="brand-g">Builder</span>&nbsp;Admin
     </div>
     <div class="header-logout">
-      <a href="admin_logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      <a href="../nahin/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
   </header>
 
@@ -491,10 +516,6 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
       <a href="templates.php">Templates</a>
     </div>
     <div class="sidebar-item">
-      <i class="fas fa-list"></i>
-      <a href="categories.php">Categories</a>
-    </div>
-    <div class="sidebar-item">
       <i class="fas fa-envelope"></i>
       <a href="contact_messages.php">Contact Messages</a>
     </div>
@@ -502,7 +523,7 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
     <div class="sidebar-logout-item">
       <div class="sidebar-item">
         <i class="fas fa-sign-out-alt"></i>
-        <a href="admin_logout.php">Logout</a>
+        <a href="../nahin/logout.php">Logout</a>
       </div>
     </div>
   </aside>
@@ -526,6 +547,10 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
         <div class="toast success"><i class="fas fa-check-circle"></i> User updated successfully.</div>
       <?php elseif ($_GET['msg'] === 'deleted'): ?>
         <div class="toast success"><i class="fas fa-check-circle"></i> User deleted successfully.</div>
+      <?php elseif ($_GET['msg'] === 'cannot_delete_self'): ?>
+        <div class="toast error"><i class="fas fa-exclamation-circle"></i> You cannot delete your own admin account.</div>
+      <?php elseif ($_GET['msg'] === 'cannot_delete_last_admin'): ?>
+        <div class="toast error"><i class="fas fa-exclamation-circle"></i> You cannot delete the last admin account.</div>
       <?php endif; ?>
     <?php endif; ?>
 
@@ -533,7 +558,7 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
       <div class="card-head">
         <h3>All Users</h3>
         <span class="user-count">
-          <?php echo mysqli_num_rows($users); ?> total
+          <?php echo count($users); ?> total
         </span>
       </div>
 
@@ -544,54 +569,53 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
               <th>SL</th>
               <th>Name</th>
               <th>Email</th>
-              <th>Phone</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <?php
-            if ($users && mysqli_num_rows($users) > 0):
+            if (!empty($users)):
               $sl = 1;
-              while ($user = mysqli_fetch_assoc($users)):
+              foreach ($users as $user):
+                $isCurrentUser = (int) $user['id'] === $currentUserId;
+                $isLastAdminUser = $hasRoleColumn && (($user['role'] ?? '') === 'admin') && $adminUserCount <= 1;
+                $deleteDisabledReason = $isCurrentUser
+                  ? 'You cannot delete your own account'
+                  : ($isLastAdminUser ? 'You cannot delete the last admin account' : '');
             ?>
               <tr>
                 <td class="sl-cell"><?php echo $sl++; ?></td>
                 <td><?php echo htmlspecialchars($user['name']); ?></td>
                 <td><?php echo htmlspecialchars($user['email']); ?></td>
-                <td><?php echo htmlspecialchars($user['phone'] ?? '—'); ?></td>
-                <td>
-                  <?php if ($user['status'] == 'active'): ?>
-                    <span class="status-active">Active</span>
-                  <?php else: ?>
-                    <span class="status-inactive">Inactive</span>
-                  <?php endif; ?>
-                </td>
                 <td>
                   <div class="actions">
                     <button class="btn-edit"
                       onclick="openEdit(
-                        <?php echo $user['id']; ?>,
-                        '<?php echo addslashes(htmlspecialchars($user['name'])); ?>',
-                        '<?php echo addslashes(htmlspecialchars($user['email'])); ?>',
-                        '<?php echo addslashes(htmlspecialchars($user['phone'] ?? '')); ?>',
-                        '<?php echo $user['status']; ?>'
+                        <?php echo (int) $user['id']; ?>,
+                        <?php echo js_arg($user['name'] ?? ''); ?>,
+                        <?php echo js_arg($user['email'] ?? ''); ?>
                       )">
                       <i class="fas fa-pen"></i> Edit
                     </button>
-                    <button class="btn-delete"
-                      onclick="openDelete(<?php echo $user['id']; ?>, '<?php echo addslashes(htmlspecialchars($user['name'])); ?>')">
-                      <i class="fas fa-trash"></i> Delete
-                    </button>
+                    <?php if ($deleteDisabledReason): ?>
+                      <button class="btn-delete" type="button" disabled title="<?php echo htmlspecialchars($deleteDisabledReason); ?>">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    <?php else: ?>
+                      <button class="btn-delete" type="button"
+                        onclick="openDelete(<?php echo (int) $user['id']; ?>, <?php echo js_arg($user['name'] ?? ''); ?>)">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>
             <?php
-              endwhile;
+              endforeach;
             else:
             ?>
               <tr class="empty-row">
-                <td colspan="6">
+                  <td colspan="4">
                   <i class="fas fa-users" style="font-size:24px;color:var(--muted-2);display:block;margin-bottom:8px"></i>
                   No users found
                 </td>
@@ -622,17 +646,6 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
         <label>Email Address</label>
         <input type="email" name="email" id="edit_email" required placeholder="Enter email">
       </div>
-      <div class="form-group">
-        <label>Phone</label>
-        <input type="text" name="phone" id="edit_phone" placeholder="Enter phone number">
-      </div>
-      <div class="form-group">
-        <label>Status</label>
-        <select name="status" id="edit_status">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
       <div class="modal-footer">
         <button type="button" class="btn-cancel" onclick="closeEdit()">Cancel</button>
         <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Changes</button>
@@ -656,12 +669,10 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
 
 <script>
   // ── Edit Modal ──
-  function openEdit(id, name, email, phone, status) {
+  function openEdit(id, name, email) {
     document.getElementById('edit_id').value    = id;
     document.getElementById('edit_name').value  = name;
     document.getElementById('edit_email').value = email;
-    document.getElementById('edit_phone').value = phone;
-    document.getElementById('edit_status').value = status;
     document.getElementById('editModal').classList.add('open');
   }
   function closeEdit() {
@@ -691,6 +702,5 @@ $users = mysqli_query($con, "SELECT * FROM users ORDER BY id DESC");
   if (toast) setTimeout(() => toast.style.display = 'none', 4000);
 </script>
 
-<?php mysqli_close($con); ?>
 </body>
 </html>

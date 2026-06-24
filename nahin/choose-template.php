@@ -22,19 +22,22 @@ if (!$user) {
 
 $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ') !== false ? substr($user['name'], strpos($user['name'], ' ') + 1, 1) : ''));
 
-// Same template list as the public demo.php gallery.
-// NOTE: every entry currently points at temp1.html as a placeholder —
-// swap in real files here as more templates are built.
-$templates = [
-    ['img' => '01', 'title' => 'Creative Portfolio',    'desc' => 'Modern Creative Agency Design',   'tag' => 'Popular',   'file' => 'temp1.html'],
-    ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',      'tag' => 'Dev',       'file' => 'temp1.html'],
-    ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',        'tag' => 'Visual',    'file' => 'temp1.html'],
-    ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',     'tag' => 'Design',    'file' => 'temp1.html'],
-    ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',  'tag' => 'Freelance', 'file' => 'temp1.html'],
-    ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',    'tag' => 'Student',   'file' => 'temp1.html'],
-    ['img' => '01', 'title' => 'Artist Portfolio',      'desc' => 'Gallery Style Creative Layout',   'tag' => 'Art',       'file' => 'temp1.html'],
-    ['img' => '02', 'title' => 'Business Portfolio',    'desc' => 'Corporate Professional Design',   'tag' => 'Business',  'file' => 'temp1.html'],
-];
+$stmt = $pdo->query("
+    SELECT name, html_file
+    FROM templates
+    WHERE status = 'active'
+    ORDER BY id ASC
+");
+$templateRows = $stmt->fetchAll();
+$templates = array_map(function ($template, $index) {
+    return [
+        'img' => str_pad((string) (($index % 2) + 1), 2, '0', STR_PAD_LEFT),
+        'title' => $template['name'],
+        'desc' => 'Portfolio template',
+        'tag' => 'Template',
+        'file' => $template['html_file'],
+    ];
+}, $templateRows, array_keys($templateRows));
 ?>
 <!DOCTYPE html>
 <html lang="en">

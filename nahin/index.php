@@ -891,9 +891,9 @@
     <div class="container text-center">
         <div style="max-width:680px;margin:0 auto;">
             <p class="test-quote">"I had a portfolio live in 20 minutes. My recruiter said it was the most professional one they'd seen."</p>
-            <div class="test-av">RK</div>
-            <div class="test-name">Rakib Khan</div>
-            <div class="test-role">Junior Developer · Dhaka</div>
+            <div class="test-av">NS</div>
+            <div class="test-name">Nafisa Sharmin</div>
+            <div class="test-role">Diligite Developer · CTG</div>
         </div>
     </div>
 </div>

@@ -9,16 +9,24 @@
     </div>
 
     <?php
-    $templates = [
-        ['img' => '01', 'title' => 'Creative Portfolio',    'desc' => 'Modern Creative Agency Design',   'tag' => 'Popular',   'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Developer Portfolio',   'desc' => 'Clean Tech & Code Showcase',      'tag' => 'Dev',       'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Photography Portfolio', 'desc' => 'Elegant Visual Portfolio',        'tag' => 'Visual',    'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Designer Portfolio',    'desc' => 'Bold UI/UX Portfolio Design',     'tag' => 'Design',    'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Freelancer Portfolio',  'desc' => 'Professional Services Showcase',  'tag' => 'Freelance', 'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Student Portfolio',     'desc' => 'Academic & Project Highlight',    'tag' => 'Student',   'file' => 'temp1.html'],
-        ['img' => '01', 'title' => 'Artist Portfolio',      'desc' => 'Gallery Style Creative Layout',   'tag' => 'Art',       'file' => 'temp1.html'],
-        ['img' => '02', 'title' => 'Business Portfolio',    'desc' => 'Corporate Professional Design',   'tag' => 'Business',  'file' => 'temp1.html'],
-    ];
+    require_once 'config/db.php';
+
+    $stmt = $pdo->query("
+        SELECT name, html_file
+        FROM templates
+        WHERE status = 'active'
+        ORDER BY id ASC
+    ");
+    $templateRows = $stmt->fetchAll();
+    $templates = array_map(function ($template, $index) {
+        return [
+            'img' => str_pad((string) (($index % 2) + 1), 2, '0', STR_PAD_LEFT),
+            'title' => $template['name'],
+            'desc' => 'Portfolio template',
+            'tag' => 'Template',
+            'file' => $template['html_file'],
+        ];
+    }, $templateRows, array_keys($templateRows));
     ?>
 
     <div class="demo-grid">
@@ -70,7 +78,6 @@
         <div class="tpl-modal-header">
             <div class="tpl-modal-meta">
                 <span class="tpl-modal-title" id="modalTitle">Preview</span>
-                <span class="tpl-modal-url" id="modalUrl">temp1.html</span>
             </div>
             <div class="tpl-modal-actions">
                 <a id="modalOpenLink" href="#" target="_blank" class="tpl-action-btn" title="Open in new tab">
@@ -565,11 +572,9 @@
         const frame = document.getElementById('templateFrame');
         const loader = document.getElementById('modalLoading');
         const mTitle = document.getElementById('modalTitle');
-        const mUrl = document.getElementById('modalUrl');
         const mLink = document.getElementById('modalOpenLink');
 
         mTitle.textContent = title;
-        mUrl.textContent = file;
         mLink.href = file;
 
         loader.style.display = 'flex';
