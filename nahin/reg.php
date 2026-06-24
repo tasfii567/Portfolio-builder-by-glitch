@@ -109,10 +109,13 @@ require 'includes/header.php';
                             <input id="rf-pass"
                                    type="password"
                                    name="password"
-                                   class="rf-input"
+                                   class="rf-input rf-input-pass"
                                    placeholder="Create a strong password"
                                    minlength="6"
                                    required>
+                            <button type="button" class="rf-eye" onclick="togglePass('rf-pass', this)" aria-label="Show password">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -123,10 +126,13 @@ require 'includes/header.php';
                             <input id="rf-confirm-pass"
                                    type="password"
                                    name="confirm_password"
-                                   class="rf-input"
+                                   class="rf-input rf-input-pass"
                                    placeholder="Re-enter your password"
                                    minlength="6"
                                    required>
+                            <button type="button" class="rf-eye" onclick="togglePass('rf-confirm-pass', this)" aria-label="Show confirm password">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -289,6 +295,27 @@ require 'includes/header.php';
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(107,140,90,.15);
 }
+
+/* ── Eye toggle (ADDED) ─────────────── */
+.rf-input-pass { padding-right: 40px; }
+
+.rf-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.rf-eye:hover { color: var(--text-dark); }
 
 /* ── Button ─────────────────────────── */
 .rf-btn {
@@ -459,5 +486,19 @@ require 'includes/header.php';
     .reg-right { padding: 48px 24px; }
 }
 </style>
+
+<script>
+function togglePass(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type    = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type    = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+</script>
 
 <?php require 'includes/footer.php'; ?>
