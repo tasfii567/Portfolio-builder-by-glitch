@@ -721,7 +721,7 @@
 </div>
 
 <!-- FEATURES -->
-<div class="container py-5 fade-up">
+<div class="container py-5 fade-up" id="features">
     <span class="section-label">Features</span>
     <h2 class="section-h">Built for people who care<br>about how their work looks.</h2>
     <div class="feat-grid">

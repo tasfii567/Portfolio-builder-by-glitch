@@ -38,6 +38,9 @@ if (session_status() === PHP_SESSION_NONE) {
                         <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="index.php#features">About</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="demo.php">Demo</a>
                     </li>
                     <li class="nav-item">
