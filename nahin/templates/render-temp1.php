@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en" x-data="app()" :class="{'dark':dark}" class="scroll-smooth">
 
+<?php
+// Template 1 does not always receive optional nav fragments from the caller.
+// Default them to empty strings to avoid undefined variable notices.
+$extraNavMd = $extraNavMd ?? '';
+$extraNavMobile = $extraNavMobile ?? '';
+$showOwnerControls = $showOwnerControls ?? false;
+?>
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -246,17 +254,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                     </svg>
                 </button>
-                <a href="dashboard.php" class="hidden md:inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-4 py-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
-                    🏠 Dashboard
-                </a>
-                <?php if ($contactEmail): ?>
-                    <a href="#contact" class="hidden md:inline-flex items-center gap-2 shimmer bg-accent text-white text-sm font-medium px-5 py-2 rounded-full hover:bg-accent-light transition-colors">
-                        Contact me
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
+                <?php if ($showOwnerControls): ?>
+                    <a href="dashboard.php" class="hidden md:inline-flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium px-4 py-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+                        🏠 Dashboard
                     </a>
-                <?php endif; ?>
+                <?php endif; ?>                        <div class="reveal d2 flex items-center justify-center">
+                            <a href="mailto:<?= h($contactEmail) ?>" class="shimmer inline-flex items-center gap-2 bg-accent text-white font-medium px-8 py-4 rounded-full hover:bg-accent-light transition-colors text-base">
+                                Email me →
+                            </a>
+                        </div>
                 <button @click="mm=!mm" class="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800" :aria-expanded="mm" aria-label="Toggle menu">
                     <svg x-show="!mm" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -275,9 +281,11 @@
                 <li><a href="#education" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Education</a></li>
                 <?= $extraNavMobile ?>
                 <li><a href="#contact" @click="mm=false" class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Contact</a></li>
-                <li class="pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                    <a href="dashboard.php" @click="mm=false" class="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors font-medium">🏠 Dashboard</a>
-                </li>
+                <?php if ($showOwnerControls): ?>
+                    <li class="pt-2 border-t border-zinc-100 dark:border-zinc-900">
+                        <a href="dashboard.php" @click="mm=false" class="inline-flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors font-medium">🏠 Dashboard</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </header>
@@ -348,8 +356,11 @@
                         <?php if ($location || $phone || $email): ?>
                             <div class="reveal d3 flex flex-col gap-2 mb-6 text-sm text-zinc-500 dark:text-zinc-400">
                                 <?php if ($location): ?><span>📍 <?= h($location) ?></span><?php endif; ?>
-                                <?php if ($contactPhone): ?><span>📞 <?= h($contactPhone) ?></span><?php endif; ?>
-                                <?php if ($contactEmail): ?><span>✉️ <?= h($contactEmail) ?></span><?php endif; ?>
+                                <?php if ($contactPhone): ?><span>📞 <?= h($contactPhone) ?></span><?php endif; ?>                        <div class="reveal d2 flex items-center justify-center">
+                            <a href="mailto:<?= h($contactEmail) ?>" class="shimmer inline-flex items-center gap-2 bg-accent text-white font-medium px-8 py-4 rounded-full hover:bg-accent-light transition-colors text-base">
+                                Email me →
+                            </a>
+                        </div>
                             </div>
                         <?php endif; ?>
                         <?php if (!empty($skills)): ?>
@@ -414,49 +425,19 @@
                 <div class="bg-zinc-900 dark:bg-zinc-800 rounded-3xl p-10 md:p-16 relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
                     <div class="absolute bottom-0 left-0 w-40 h-40 bg-accent/10 rounded-full blur-2xl pointer-events-none" aria-hidden="true"></div>
-                    <div class="relative z-10 grid md:grid-cols-2 gap-12 items-start">
+                                        <div class="relative z-10 grid md:grid-cols-2 gap-12 items-start">
                         <div>
                             <p class="reveal text-xs font-medium text-accent tracking-widest uppercase mb-3">Get in touch</p>
                             <h2 class="reveal d1 font-display font-bold text-4xl md:text-5xl text-white leading-tight mb-5">Let's work<br />together</h2>
                             <p class="reveal d2 text-zinc-400 leading-relaxed mb-8">I'm open to new opportunities. Feel free to reach out!</p>
                             <div class="reveal d3 flex flex-col gap-4"><?= $socialLinksHtml ?></div>
                         </div>
-                        <?php if (!empty($profile['enable_contact_form'])): ?>
-                            <div class="reveal d2">
-                                <form action="contact-handler.php" method="POST" novalidate>
-                                    <input type="hidden" name="portfolio_user_id" value="<?= (int)$userId ?>">
-                                    <div class="flex flex-col gap-4">
-                                        <div class="grid sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label for="fname" class="block text-xs font-medium text-zinc-400 mb-1.5">Name *</label>
-                                                <input type="text" id="fname" name="name" placeholder="Jane Smith" required autocomplete="name" class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors" />
-                                            </div>
-                                            <div>
-                                                <label for="femail" class="block text-xs font-medium text-zinc-400 mb-1.5">Email *</label>
-                                                <input type="email" id="femail" name="email" placeholder="jane@company.com" required autocomplete="email" class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label for="fsubject" class="block text-xs font-medium text-zinc-400 mb-1.5">Subject</label>
-                                            <input type="text" id="fsubject" name="subject" placeholder="Project inquiry" class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors" />
-                                        </div>
-                                        <div>
-                                            <label for="fmessage" class="block text-xs font-medium text-zinc-400 mb-1.5">Message *</label>
-                                            <textarea id="fmessage" name="message" rows="4" placeholder="Tell me about your project..." required class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors resize-none"></textarea>
-                                        </div>
-                                        <button type="submit" class="shimmer w-full bg-accent text-white font-display font-bold text-sm py-3.5 rounded-xl hover:bg-accent-light transition-colors">Send message →</button>
-                                    </div>
-                                </form>
-                            </div>
-                        <?php else: ?>
-                            <div class="reveal d2 flex items-center justify-center">
-                                <?php if ($contactEmail): ?>
-                                    <a href="mailto:<?= h($contactEmail) ?>" class="shimmer inline-flex items-center gap-2 bg-accent text-white font-medium px-8 py-4 rounded-full hover:bg-accent-light transition-colors text-base">
-                                        Email me →
-                                    </a>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
+                        <div class="reveal d2 flex items-center justify-center">
+                            <a href="mailto:<?= h($contactEmail) ?>" class="shimmer inline-flex items-center gap-2 bg-accent text-white font-medium px-8 py-4 rounded-full hover:bg-accent-light transition-colors text-base">
+                                Email me →
+                            </a>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -471,10 +452,12 @@
     </footer>
 
     <!-- ═══ EDIT BAR (only visible when logged in — this page is always authenticated) ═══ -->
-    <div class="edit-bar">
-        <a href="choose-template.php" class="btn-dash">← Change Template</a>
-        <a href="edit-portfolio.php" class="btn-edit">✏️ Edit Portfolio</a>
-    </div>
+    <?php if ($showOwnerControls): ?>
+        <div class="edit-bar">
+            <a href="choose-template.php" class="btn-dash">← Change Template</a>
+            <a href="edit-portfolio.php" class="btn-edit">✏️ Edit Portfolio</a>
+        </div>
+    <?php endif; ?>
 
     <script>
         function app() {

@@ -1153,7 +1153,7 @@ svg{
   <section id="contact" class="section wrap">
     <div class="contact-header">
       <h2 class="section-title">Let's work together</h2>
-      <a href="#contact-form" class="btn btn-primary">Say hello</a>
+      <a href="#contact" class="btn btn-primary">Say hello</a>
     </div>
 
     <div class="contact-grid">
@@ -1181,26 +1181,7 @@ svg{
         </div>
       </div>
 
-      <form id="contact-form" class="contact-form" novalidate>
-        <div class="form-row-2">
-          <div class="form-row">
-            <input type="text" id="name" name="name" placeholder="Your name" required maxlength="100">
-          </div>
-          <div class="form-row">
-            <input type="email" id="email" name="email" placeholder="Your email" required maxlength="150">
-          </div>
-        </div>
-        <div class="form-row">
-          <input type="text" id="subject" name="subject" placeholder="Subject" maxlength="150">
-        </div>
-        <div class="form-row">
-          <textarea id="message" name="message" rows="5" placeholder="Message" required maxlength="5000"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit">Send message</button>
-          <span id="form-status" class="form-status" role="status" aria-live="polite"></span>
-        </div>
-      </form>
+      
     </div>
 
     <div class="map-embed">
@@ -1428,72 +1409,6 @@ function initTestimonialCarousel() {
   if (!prefersReducedMotion) {
     restartAutoplay();
   }
-}
-
-/* ---------- Contact form ---------- */
-function initContactForm() {
-  const form = document.getElementById("contact-form");
-  if (!form) return;
-
-  const statusEl = document.getElementById("form-status");
-  const submitBtn = form.querySelector("button[type='submit']");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const payload = {
-      name: form.name.value.trim(),
-      email: form.email.value.trim(),
-      subject: form.subject.value.trim(),
-      message: form.message.value.trim(),
-    };
-
-    if (!payload.name || !payload.email || !payload.message) {
-      setStatus(statusEl, "Please fill in all required fields.", "error");
-      return;
-    }
-
-    setStatus(statusEl, "Sending…", "pending");
-    submitBtn.disabled = true;
-
-    try {
-      // Point this at your real backend endpoint, e.g. "/api/contact"
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await res.json().catch(() => ({}));
-
-      if (!res.ok || result.success === false) {
-        setStatus(
-          statusEl,
-          result.error || "Something went wrong. Please try again.",
-          "error"
-        );
-        return;
-      }
-
-      setStatus(statusEl, "Message sent — thank you!", "success");
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      setStatus(
-        statusEl,
-        "Couldn't reach the server. Please email me directly instead.",
-        "error"
-      );
-    } finally {
-      submitBtn.disabled = false;
-    }
-  });
-}
-
-function setStatus(el, message, type) {
-  if (!el) return;
-  el.textContent = message;
-  el.dataset.state = type;
 }
 
 /* ---------- Back to top ---------- */

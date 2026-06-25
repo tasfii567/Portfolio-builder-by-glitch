@@ -29,8 +29,22 @@ function tpl_tech_tags($techs, $class = '')
     return $out;
 }
 
+function tpl_replace_section($html, $sectionId, $innerHtml)
+{
+    $pattern = '#<section\b([^>]*\bid="' . preg_quote($sectionId, '#') . '"[^>]*)>.*?</section>#is';
+    return preg_replace_callback($pattern, function ($match) use ($innerHtml) {
+        return '<section' . $match[1] . '>' . $innerHtml . '</section>';
+    }, $html, 1);
+}
+
 function tpl_edit_bar()
 {
+    global $showOwnerControls;
+
+    if (empty($showOwnerControls)) {
+        return '';
+    }
+
     return '
 <div class="edit-bar">
   <a href="choose-template.php">Change Template</a>
@@ -74,19 +88,21 @@ switch ((int) $previewTemplateId) {
             $projectRows = '<div class="project-card"><div class="project-info"><h3>No projects added yet</h3><p>Add projects in Edit Portfolio to populate this section.</p></div><a class="project-link" href="edit-portfolio.php">Add Project</a></div>';
         }
 
-        $contactForm = !empty($profile['enable_contact_form'])
-            ? '<form action="contact-handler.php" method="POST" class="contact-form" novalidate><input type="hidden" name="portfolio_user_id" value="' . (int) $userId . '"><div class="form-row"><label for="name">Name</label><input type="text" id="name" name="name" required maxlength="100"></div><div class="form-row"><label for="email">Email</label><input type="email" id="email" name="email" required maxlength="150"></div><div class="form-row"><label for="subject">Subject</label><input type="text" id="subject" name="subject" maxlength="150"></div><div class="form-row"><label for="message">Message</label><textarea id="message" name="message" rows="5" required maxlength="5000"></textarea></div><div class="form-actions"><button type="submit">Send Message</button><span class="form-status" role="status" aria-live="polite"></span></div></form>'
-            : ($contactEmail ? '<p class="lead"><a class="project-link" href="mailto:' . h($contactEmail) . '">Email me</a></p>' : '');
+        $testimonialsInner = '<div class="section-head"><span class="tag">05</span><h2>Testimonials</h2></div><div class="testimonial-grid">'
+            . '<blockquote><p>"' . h($name) . ' turns ambiguous requirements into polished delivery. The attention to detail shows in both the product and the handoff."</p><footer><strong>' . h($name) . '</strong><span>' . h($title) . '</span></footer></blockquote>'
+            . '<blockquote><p>"Reliable, communicative, and thoughtful about user experience. A strong choice for projects that need both speed and care."</p><footer><strong>' . h($location ?: 'Client feedback') . '</strong><span>Portfolio preview</span></footer></blockquote>'
+            . '</div>';
 
         $html = preg_replace('/<h1>.*?<\/h1>/is', '<h1>' . h($name) . '</h1>', $html, 1);
         $html = preg_replace('/<p class="role">.*?<\/p>/is', '<p class="role">' . h($title) . '</p>', $html, 1);
         $html = preg_replace('/<p class="blurb">.*?<\/p>/is', '<p class="blurb">' . h($bio) . '</p>', $html, 1);
         $html = preg_replace('/<span class="contact-line">.*?<\/span>\s*<span class="contact-line">.*?<\/span>/is', '<span class="contact-line">' . h($location) . '</span><span class="contact-line">' . h($contactEmail) . '</span>', $html, 1);
-        $html = preg_replace('/<section id="about">.*?<\/section>/is', '<section id="about"><div class="section-head"><span class="tag">01</span><h2>About</h2></div><p>' . nl2br(h($bio)) . '</p></section>', $html, 1);
-        $html = preg_replace('/<div class="skills-grid">.*?<\/div>\s*<\/section>/is', '<div class="skills-grid">' . $skillsHtml . '</div></section>', $html, 1);
-        $html = preg_replace('/<div class="ledger">.*?<\/div>\s*<\/section>/is', '<div class="ledger">' . $experienceRows . '</div></section>', $html, 1);
-        $html = preg_replace('/<div class="projects-list">.*?<\/div>\s*<\/section>/is', '<div class="projects-list">' . $projectRows . '</div></section>', $html, 1);
-        $html = preg_replace('/<div class="contact-grid">.*?<\/div>\s*<form id="contact-form".*?<\/form>/is', '<div class="contact-grid"><div class="contact-item"><span class="label">Email</span><span class="value">' . h($contactEmail) . '</span></div><div class="contact-item"><span class="label">Phone</span><span class="value">' . h($contactPhone) . '</span></div><div class="contact-item"><span class="label">Location</span><span class="value">' . h($location) . '</span></div><div class="contact-item"><span class="label">Availability</span><span class="value">Open to opportunities</span></div></div>' . $contactForm, $html, 1);
+        $html = tpl_replace_section($html, 'about', '<div class="section-head"><span class="tag">01</span><h2>About</h2></div><p>' . nl2br(h($bio)) . '</p>');
+        $html = tpl_replace_section($html, 'skills', '<div class="section-head"><span class="tag">02</span><h2>Skills</h2></div><div class="skills-grid">' . $skillsHtml . '</div>');
+        $html = tpl_replace_section($html, 'experience', '<div class="section-head"><span class="tag">03</span><h2>Experience</h2></div><div class="ledger">' . $experienceRows . '</div>');
+        $html = tpl_replace_section($html, 'projects', '<div class="section-head"><span class="tag">04</span><h2>Projects</h2></div><div class="projects-list">' . $projectRows . '</div>');
+        $html = tpl_replace_section($html, 'testimonials', $testimonialsInner);
+        $html = tpl_replace_section($html, 'contact', '<div class="section-head"><span class="tag">06</span><h2>Contact</h2></div><p class="lead">Open to opportunities, collaborations, and new project conversations.</p><div class="contact-grid"><div class="contact-item"><span class="label">Email</span><span class="value">' . h($contactEmail) . '</span></div><div class="contact-item"><span class="label">Phone</span><span class="value">' . h($contactPhone) . '</span></div><div class="contact-item"><span class="label">Location</span><span class="value">' . h($location) . '</span></div><div class="contact-item"><span class="label">Availability</span><span class="value">Open to opportunities</span></div></div><div class="social-row">' . $socialLinksHtml . '</div>');
         $html = preg_replace('/<footer class="site-footer">.*?<\/footer>/is', '<footer class="site-footer">&copy; ' . date('Y') . ' ' . h($name) . '. Built with PortfolioBuilder.</footer>', $html, 1);
         $html = preg_replace('/<script>.*?<\/script>/is', '', $html);
         break;
@@ -113,20 +129,15 @@ switch ((int) $previewTemplateId) {
             $stackGroups .= '</ul></div>';
         }
 
-        $form = !empty($profile['enable_contact_form'])
-            ? '<form action="contact-handler.php" method="POST" class="contact-form" novalidate><input type="hidden" name="portfolio_user_id" value="' . (int) $userId . '"><div class="form-row"><label for="name">Name</label><input type="text" id="name" name="name" required maxlength="100"></div><div class="form-row"><label for="email">Email</label><input type="email" id="email" name="email" required maxlength="150"></div><div class="form-row form-row-full"><label for="message">Message</label><textarea id="message" name="message" rows="5" required maxlength="5000"></textarea></div><div class="form-actions"><button type="submit">Send message</button><span class="form-status" role="status" aria-live="polite"></span></div></form>'
-            : '';
-
         $brand = strtolower(preg_replace('/[^a-z0-9]+/i', '.', trim($firstName))) ?: 'portfolio';
         $html = str_replace('jordan<span class="brand-dot">.</span>lee', h($brand) . '<span class="brand-dot">.</span>', $html);
         $html = preg_replace('/<span class="terminal-title">.*?<\/span>/is', '<span class="terminal-title">' . h(strtolower($firstName)) . '@dev: ~</span>', $html, 1);
         $html = preg_replace('/<p class="line output">.*?<\/p>/is', '<p class="line output">' . h($name) . ' - ' . h($title) . '</p>', $html, 1);
         $html = preg_replace('/<p class="hero-sub">.*?<\/p>/is', '<p class="hero-sub">' . h($bio) . '</p>', $html, 1);
-        $html = preg_replace('/<div class="project-list">.*?<\/div>\s*<\/section>/is', '<div class="project-list">' . $projectRows . '</div></section>', $html, 1);
-        $html = preg_replace('/<div class="about-grid">.*?<\/div>\s*<\/section>/is', '<div class="about-grid"><div class="about-photo">' . $avatarHtml . '</div><div class="about-copy"><p class="eyebrow">// about</p><h2 class="section-title">' . h($name) . '</h2><p>' . nl2br(h($bio)) . '</p><ul class="meta-list"><li><span>Location</span>' . h($location) . '</li><li><span>Experience</span>' . h($expYears) . '</li><li><span>Focus</span>' . h($title) . '</li></ul></div></div></section>', $html, 1);
-        $html = preg_replace('/<div class="stack-grid">.*?<\/div>\s*<\/section>/is', '<div class="stack-grid">' . $stackGroups . '</div></section>', $html, 1);
-        $html = preg_replace('/<form id="contact-form".*?<\/form>/is', $form, $html, 1);
-        $html = preg_replace('/<div class="social-row">.*?<\/div>/is', '<div class="social-row"><a href="mailto:' . h($contactEmail) . '">' . h($contactEmail) . '</a>' . $socialLinksHtml . '</div>', $html, 1);
+        $html = tpl_replace_section($html, 'work', '<p class="eyebrow">// selected work</p><h2 class="section-title">Projects</h2><div class="project-list">' . $projectRows . '</div>');
+        $html = tpl_replace_section($html, 'about', '<div class="about-grid"><div class="about-photo">' . $avatarHtml . '</div><div class="about-copy"><p class="eyebrow">// about</p><h2 class="section-title">' . h($name) . '</h2><p>' . nl2br(h($bio)) . '</p><ul class="meta-list"><li><span>Location</span>' . h($location) . '</li><li><span>Experience</span>' . h($expYears) . '</li><li><span>Focus</span>' . h($title) . '</li></ul></div></div>');
+        $html = tpl_replace_section($html, 'stack', '<p class="eyebrow">// stack</p><h2 class="section-title">Tools &amp; technologies</h2><div class="stack-grid">' . $stackGroups . '</div>');
+        $html = tpl_replace_section($html, 'contact', '<p class="eyebrow">// contact</p><h2 class="section-title">Let\'s work together</h2><p class="contact-lead">' . h($bio) . '</p><div class="social-row"><a href="mailto:' . h($contactEmail) . '">' . h($contactEmail) . '</a>' . $socialLinksHtml . '</div>');
         $html = preg_replace('/<footer class="site-footer wrap">.*?<\/footer>/is', '<footer class="site-footer wrap"><span>&copy; ' . date('Y') . ' ' . h($name) . '</span><a href="#top" class="back-to-top">Back to top</a></footer>', $html, 1);
         $html = preg_replace('/loadProjects\(\);\s*loadTestimonials\(\);/s', '', $html);
         break;
@@ -162,7 +173,7 @@ switch ((int) $previewTemplateId) {
         $html = preg_replace('/const skills = \[.*?\];/s', 'const skills = ' . json_encode($skillData) . ';', $html, 1);
         $html = preg_replace('/const projects = \[.*?\];/s', 'const projects = ' . json_encode($projectData) . ';', $html, 1);
         $html = preg_replace('/const timeline = \[.*?\];/s', 'const timeline = ' . json_encode($timelineData) . ';', $html, 1);
-        $html = preg_replace('/<form class="contact-form".*?<\/form>/is', '<form action="contact-handler.php" method="POST" class="contact-form"><input type="hidden" name="portfolio_user_id" value="' . (int) $userId . '"><div class="form-group"><label>Name</label><input type="text" name="name" required></div><div class="form-group"><label>Email Address</label><input type="email" name="email" required></div><div class="form-group"><label>Subject</label><input type="text" name="subject"></div><div class="form-group"><label>Message</label><textarea name="message" required></textarea></div><button type="submit" class="btn-send">Send Message</button></form>', $html, 1);
+        $html = preg_replace('/<form class="contact-form".*?<\/form>/is', '', $html, 1);
         $html = preg_replace('/<div class="footer-copy">.*?<\/div>/is', '<div class="footer-copy">&copy; ' . date('Y') . ' ' . h($name) . '</div>', $html, 1);
         break;
 
@@ -180,8 +191,7 @@ switch ((int) $previewTemplateId) {
         $html = preg_replace('/<div class="hero-badge">.*?<\/div>/is', '<div class="hero-badge">' . h($title) . '</div>', $html, 1);
         $html = preg_replace('/<p>\s*I\'m a passionate.*?<\/p>/is', '<p>' . h($bio) . '</p>', $html, 1);
         $html = preg_replace('/<div class="projects-grid">.*?<\/div>\s*<\/section>/is', '<div class="projects-grid">' . $projectCards . '</div></section>', $html, 1);
-        $html = preg_replace('/<div class="contact-info">.*?<\/div>\s*<form class="contact-form"/is', '<div class="contact-info"><div class="section-label">Contact</div><h2 class="section-title">Get in touch</h2><p>' . h($bio) . '</p><div class="contact-socials">' . $socialLinksHtml . ($contactEmail ? '<a href="mailto:' . h($contactEmail) . '" class="social-btn" title="Email">@</a>' : '') . '</div></div><form action="contact-handler.php" method="POST" class="contact-form"', $html, 1);
-        $html = str_replace('<form action="contact-handler.php" method="POST" class="contact-form"', '<form action="contact-handler.php" method="POST" class="contact-form"><input type="hidden" name="portfolio_user_id" value="' . (int) $userId . '">', $html);
+        $html = preg_replace('/<div class="contact-info">.*?<\/div>\s*<form class="contact-form".*?<\/form>/is', '<div class="contact-info"><div class="section-label">Contact</div><h2 class="section-title">Get in touch</h2><p>' . h($bio) . '</p><div class="contact-socials">' . $socialLinksHtml . ($contactEmail ? '<a href="mailto:' . h($contactEmail) . '" class="social-btn" title="Email">@</a>' : '') . '</div></div>', $html, 1);
         $html = preg_replace('/<footer>.*?<\/footer>/is', '<footer><p>' . h($name) . ' &copy; ' . date('Y') . ' - All rights reserved.</p></footer>', $html, 1);
         break;
 
@@ -209,7 +219,7 @@ switch ((int) $previewTemplateId) {
         $html = preg_replace('/<strong>123 Street, New York, USA<\/strong>/is', '<strong>' . h($location) . '</strong>', $html, 1);
         $html = preg_replace('/<strong>\+012 345 6789<\/strong>/is', '<strong>' . h($contactPhone) . '</strong>', $html, 1);
         $html = preg_replace('/<strong>info@example.com<\/strong>/is', '<strong>' . h($contactEmail) . '</strong>', $html, 1);
-        $html = preg_replace('/<form id="contact-form".*?<\/form>/is', '<form id="contact-form" action="contact-handler.php" method="POST" class="contact-form" novalidate><input type="hidden" name="portfolio_user_id" value="' . (int) $userId . '"><div class="form-row-2"><div class="form-row"><input type="text" name="name" placeholder="Your name" required maxlength="100"></div><div class="form-row"><input type="email" name="email" placeholder="Your email" required maxlength="150"></div></div><div class="form-row"><input type="text" name="subject" placeholder="Subject" maxlength="150"></div><div class="form-row"><textarea name="message" rows="5" placeholder="Message" required maxlength="5000"></textarea></div><div class="form-actions"><button type="submit">Send message</button><span class="form-status" role="status" aria-live="polite"></span></div></form>', $html, 1);
+        $html = preg_replace('/<form id="contact-form".*?<\/form>/is', '', $html, 1);
         $html = preg_replace('/<span>.*?All rights reserved\.<\/span>/is', '<span>&copy; ' . date('Y') . ' ' . h($name) . '. All rights reserved.</span>', $html, 1);
         break;
 }

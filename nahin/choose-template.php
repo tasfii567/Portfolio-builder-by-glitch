@@ -37,6 +37,7 @@ $templates = array_map(function ($template, $index) {
         'desc' => 'Portfolio template',
         'tag' => 'Template',
         'file' => $template['html_file'],
+        'preview_url' => 'template-preview.php?template_id=' . (int) $template['id'],
     ];
 }, $templateRows, array_keys($templateRows));
 ?>
@@ -773,7 +774,7 @@ $templates = array_map(function ($template, $index) {
                             <div class="demo-img-wrap">
                                 <div class="demo-iframe-wrap">
                                     <iframe
-                                        src="<?= htmlspecialchars($t['file']) ?>"
+                                        src="<?= htmlspecialchars($t['preview_url']) ?>"
                                         class="demo-iframe"
                                         scrolling="no"
                                         tabindex="-1"
@@ -783,7 +784,7 @@ $templates = array_map(function ($template, $index) {
                                     <div class="demo-iframe-block"></div>
                                 </div>
                                 <div class="demo-overlay">
-                                    <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>', <?= (int) $t['id'] ?>)">
+                                    <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['preview_url']) ?>', '<?= htmlspecialchars($t['title']) ?>', <?= (int) $t['id'] ?>)">
                                         <i class="bi bi-eye"></i> See Template
                                     </button>
                                 </div>
@@ -812,7 +813,6 @@ $templates = array_map(function ($template, $index) {
             <div class="tpl-modal-header">
                 <div class="tpl-modal-meta">
                     <span class="tpl-modal-title" id="modalTitle">Preview</span>
-                    <span class="tpl-modal-url" id="modalUrl">temp1.html</span>
                 </div>
                 <div class="tpl-modal-actions">
                     <a id="modalOpenLink" href="#" target="_blank" class="tpl-action-btn" title="Open in new tab">
@@ -849,24 +849,22 @@ $templates = array_map(function ($template, $index) {
         let currentTemplateFile = '';
         let currentTemplateId = '';
 
-        function openPreview(file, title, id) {
-            currentTemplateFile = file;
+        function openPreview(previewUrl, title, id) {
+            currentTemplateFile = previewUrl;
             currentTemplateId = id;
 
             const modal = document.getElementById('templateModal');
             const frame = document.getElementById('templateFrame');
             const loader = document.getElementById('modalLoading');
             const mTitle = document.getElementById('modalTitle');
-            const mUrl = document.getElementById('modalUrl');
             const mLink = document.getElementById('modalOpenLink');
 
             mTitle.textContent = title;
-            mUrl.textContent = file;
-            mLink.href = file;
+            mLink.href = previewUrl;
 
             loader.style.display = 'flex';
             frame.src = '';
-            frame.src = file;
+            frame.src = previewUrl;
 
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
