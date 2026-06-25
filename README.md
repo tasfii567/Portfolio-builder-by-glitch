@@ -74,6 +74,9 @@ A comprehensive web application developed in PHP that empowers users to effortle
 *   **Composer** (Recommended for managing PHP dependencies, though not explicitly used in the provided structure)
 *   **Git** (For cloning the repository)
 
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 *   Special thanks to the creators of the various portfolio templates used within this project, providing diverse design options for users.
 *   Inspiration from portfolio platforms and builder tools that simplify web presence creation.
