@@ -1,4 +1,10 @@
-<?php include 'includes/header.php'; ?>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+include 'includes/header.php';
+?>
 
 <section class="demo-wrap">
 
@@ -10,21 +16,27 @@
 
     <?php
     require_once 'config/db.php';
+    $useLivePreview = !empty($_SESSION['user_id']);
 
     $stmt = $pdo->query("
-        SELECT name, html_file
+        SELECT id, name, html_file
         FROM templates
         WHERE status = 'active'
         ORDER BY id ASC
     ");
     $templateRows = $stmt->fetchAll();
-    $templates = array_map(function ($template, $index) {
+    $templates = array_map(function ($template, $index) use ($useLivePreview) {
+        $previewUrl = $useLivePreview
+            ? 'template-preview.php?template_id=' . (int) $template['id']
+            : $template['html_file'];
         return [
+            'id' => (int) $template['id'],
             'img' => str_pad((string) (($index % 2) + 1), 2, '0', STR_PAD_LEFT),
             'title' => $template['name'],
             'desc' => 'Portfolio template',
             'tag' => 'Template',
             'file' => $template['html_file'],
+            'preview_url' => $previewUrl,
         ];
     }, $templateRows, array_keys($templateRows));
     ?>
@@ -36,7 +48,7 @@
                 <div class="demo-img-wrap">
                     <div class="demo-iframe-wrap">
                         <iframe
-                            src="<?= htmlspecialchars($t['file']) ?>"
+                            src="<?= htmlspecialchars($t['preview_url']) ?>"
                             class="demo-iframe"
                             scrolling="no"
                             tabindex="-1"
@@ -50,7 +62,7 @@
 
                     </div>
                     <div class="demo-overlay">
-                        <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
+                        <button class="demo-preview-btn" onclick="openPreview('<?= htmlspecialchars($t['preview_url']) ?>', '<?= htmlspecialchars($t['title']) ?>', '<?= htmlspecialchars($t['file']) ?>')">
                             <i class="bi bi-eye"></i> See Template
                         </button>
                     </div>
@@ -60,7 +72,7 @@
                 <div class="demo-card-body">
                     <h3 class="demo-card-title"><?= htmlspecialchars($t['title']) ?></h3>
                     <p class="demo-card-desc"><?= htmlspecialchars($t['desc']) ?></p>
-                    <button class="demo-use-btn" onclick="openPreview('<?= htmlspecialchars($t['file']) ?>', '<?= htmlspecialchars($t['title']) ?>')">
+                    <button class="demo-use-btn" onclick="openPreview('<?= htmlspecialchars($t['preview_url']) ?>', '<?= htmlspecialchars($t['title']) ?>', '<?= htmlspecialchars($t['file']) ?>')">
                         Use this template →
                     </button>
                 </div>
@@ -567,7 +579,7 @@
 </style>
 
 <script>
-    function openPreview(file, title) {
+    function openPreview(previewUrl, title, file) {
         const modal = document.getElementById('templateModal');
         const frame = document.getElementById('templateFrame');
         const loader = document.getElementById('modalLoading');
@@ -575,11 +587,11 @@
         const mLink = document.getElementById('modalOpenLink');
 
         mTitle.textContent = title;
-        mLink.href = file;
+        mLink.href = previewUrl;
 
         loader.style.display = 'flex';
         frame.src = '';
-        frame.src = file;
+        frame.src = previewUrl;
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';

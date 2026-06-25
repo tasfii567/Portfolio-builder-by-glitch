@@ -71,7 +71,6 @@ if (!$profile) {
         'visibility' => 'public',
         'contact_email' => null,
         'contact_phone' => null,
-        'enable_contact_form' => 1,
         'email_notifications' => 1,
     ];
 }
@@ -143,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $visibility         = ($_POST['visibility'] ?? 'public') === 'private' ? 'private' : 'public';
     $contactEmail       = trim($_POST['contact_email'] ?? '');
     $contactPhone       = trim($_POST['contact_phone'] ?? '');
-    $enableContactForm  = isset($_POST['enable_contact_form']) ? 1 : 0;
     $emailNotifications = isset($_POST['email_notifications']) ? 1 : 0;
 
     if (empty($errors)) {
@@ -161,8 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO profiles (
                 user_id, avatar, title, bio, location, phone,
                 theme, visibility,
-                contact_email, contact_phone, enable_contact_form, email_notifications
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                contact_email, contact_phone, email_notifications
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 avatar = VALUES(avatar),
                 title = VALUES(title),
@@ -173,7 +171,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 visibility = VALUES(visibility),
                 contact_email = VALUES(contact_email),
                 contact_phone = VALUES(contact_phone),
-                enable_contact_form = VALUES(enable_contact_form),
                 email_notifications = VALUES(email_notifications)
         ");
         $stmt->execute([
@@ -189,7 +186,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $visibility,
             $contactEmail,
             $contactPhone,
-            $enableContactForm,
             $emailNotifications
         ]);
 
@@ -767,7 +763,7 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
                 <div style="display:flex;align-items:center;gap:14px">
                     <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
                     <div>
-                        <h2>Edit Portfolio</h2>
+                        <h2>Edit Profile</h2>
                         <p>Keep your profile, projects and skills up to date.</p>
                     </div>
                 </div>
@@ -1152,11 +1148,6 @@ $initials = strtoupper(substr($user['name'], 0, 1) . (strpos($user['name'], ' ')
                                     <input type="text" name="contact_phone" class="form-control" value="<?= htmlspecialchars($profile['contact_phone'] ?? '') ?>">
                                 </div>
                             </div>
-                            <div class="form-check mb-2">
-                                <input type="checkbox" class="form-check-input" name="enable_contact_form" <?= $profile['enable_contact_form'] ? 'checked' : '' ?>>
-                                <label class="form-check-label">Enable contact form on my public portfolio</label>
-                            </div>
-
                         </div>
                     </div>
 

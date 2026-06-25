@@ -713,24 +713,7 @@ img{ max-width:100%; display:block; }
       The fastest way to reach me is email — I reply within a day.
     </p>
 
-    <form id="contact-form" class="contact-form" novalidate>
-      <div class="form-row">
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name" required maxlength="100">
-      </div>
-      <div class="form-row">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required maxlength="150">
-      </div>
-      <div class="form-row form-row-full">
-        <label for="message">Message</label>
-        <textarea id="message" name="message" rows="5" required maxlength="5000"></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="submit">Send message</button>
-        <span id="form-status" class="form-status" role="status" aria-live="polite"></span>
-      </div>
-    </form>
+    
 
     <div class="social-row">
       <a href="#" target="_blank" rel="noopener">GitHub</a>
@@ -754,71 +737,7 @@ img{ max-width:100%; display:block; }
 
   const API_BASE = "/api"; // same-origin when served by the Express backend
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initContactForm();
-    loadProjects();
-    loadTestimonials();
-  });
-
-  /* ---------- Contact form ---------- */
-  function initContactForm() {
-    const form = document.getElementById("contact-form");
-    if (!form) return;
-
-    const statusEl = document.getElementById("form-status");
-    const submitBtn = form.querySelector("button[type='submit']");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const payload = {
-        name: form.name.value.trim(),
-        email: form.email.value.trim(),
-        subject: form.subject.value.trim(),
-        message: form.message.value.trim(),
-      };
-
-      setStatus(statusEl, "Sending…", "pending");
-      submitBtn.disabled = true;
-
-      try {
-        const res = await fetch(`${API_BASE}/contact`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const result = await res.json();
-
-        if (!res.ok || !result.success) {
-          const firstError =
-            result.errors?.[0]?.msg || result.error || "Something went wrong.";
-          setStatus(statusEl, firstError, "error");
-          return;
-        }
-
-        setStatus(
-          statusEl,
-          result.warning || "Message sent — thank you! I'll be in touch soon.",
-          result.warning ? "warning" : "success"
-        );
-        form.reset();
-      } catch (err) {
-        console.error(err);
-        setStatus(statusEl, "Network error. Please try again.", "error");
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-  }
-
-  function setStatus(el, message, type) {
-    if (!el) return;
-    el.textContent = message;
-    el.dataset.state = type;
-  }
-
-  /* ---------- Projects (loaded dynamically) ---------- */
+  document.addEventListener("DOMContentLoaded", () => {`r`n  loadProjects();`r`n  loadTestimonials();`r`n});`r`n`r`n/* ---------- Projects (loaded dynamically) ---------- */
   async function loadProjects() {
     const container = document.querySelector(".projects-list");
     if (!container) return;
